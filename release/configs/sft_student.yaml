@@ -1,0 +1,22 @@
+seed: 1
+device: auto
+train_path: ../data/full_release/sft/train.jsonl
+valid_path: ../data/full_release/sft/valid.jsonl
+eval_path: ../data/full_release/eval/sft_eval.jsonl
+run_dir: runs/student_pipeline/student/sft
+batch_size: 8
+max_steps: 75
+learning_rate: 0.0005
+min_learning_rate: 0.00005
+schedule: cosine
+warmup_steps: 20
+weight_decay: 0.0
+betas: [0.9, 0.95]
+grad_clip: 1.0
+amp: true
+amp_dtype: bf16
+eval_interval: 25
+checkpoint_interval: 25
+sample_prompts:
+  - "### Task: story\n### Prompt:\nWrite a short story about a brave mouse.\nGoal: help a friend.\nEvent: found a lost button.\nFeeling: proud and happy.\n### Response:"
+  - "### Task: label\n### Prompt:\nChoose one feeling label: happy, sad, scared, angry, kind, lonely.\nText: Tim lost a toy at the park and cried softly.\nAnswer:\n### Response:"

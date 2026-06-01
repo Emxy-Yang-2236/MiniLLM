@@ -1,0 +1,17 @@
+name: cs336-minillm
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - torch
+      - numpy
+      - pyyaml
+      - regex
+      - tiktoken
+      - psutil
+      - einops
+      - jaxtyping
+      - pytest-snapshot
+      - pytest

@@ -1,0 +1,9 @@
+input_path: ../data/raw/tinystories/TinyStoriesV2-GPT4-train.txt
+vocab_size: 10000
+output_path: runs/tokenizer_tinystories_10k/tokenizer.json
+special_tokens: ["<|endoftext|>"]
+min_frequency: 2
+pretokenizer: gpt2_like
+tie_break: max
+num_workers: 2
+num_chunks: 16

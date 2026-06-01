@@ -1,0 +1,9 @@
+tokenizer_path: runs/tokenizer_tinystories_10k/tokenizer.json
+add_eos: true
+datasets:
+  - split: train
+    input_path: ../data/raw/tinystories/TinyStoriesV2-GPT4-train.txt
+    output_path: runs/tokenizer_tinystories_10k/tinystories_train.bin
+  - split: valid
+    input_path: ../data/raw/tinystories/TinyStoriesV2-GPT4-valid.txt
+    output_path: runs/tokenizer_tinystories_10k/tinystories_valid.bin

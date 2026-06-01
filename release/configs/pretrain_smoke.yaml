@@ -1,0 +1,30 @@
+seed: 0
+device: auto
+tokenizer_path: runs/student_pipeline/smoke/tokenizer/tokenizer.json
+train_path: runs/student_pipeline/smoke/tokenizer/pretrain_train.bin
+valid_path: runs/student_pipeline/smoke/tokenizer/pretrain_valid.bin
+run_dir: runs/student_pipeline/smoke/pretrain
+batch_size: 4
+max_steps: 4
+learning_rate: 0.001
+min_learning_rate: 0.0001
+schedule: cosine
+warmup_steps: 1
+weight_decay: 0.01
+betas: [0.9, 0.95]
+grad_clip: 1.0
+eval_interval: 1
+sample_interval: 2
+sample_prompt: Alice was beginning
+model:
+  vocab_size: 384
+  context_length: 48
+  num_layers: 1
+  d_model: 64
+  d_ff: 160
+  num_heads: 4
+  rope_theta: 10000.0
+  dropout: 0.0
+  attention_backend: naive
+  mlp_type: swiglu
+  tie_embeddings: false

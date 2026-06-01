@@ -1,0 +1,35 @@
+seed: 0
+device: auto
+tokenizer_path: runs/student_pipeline/student/tokenizer/tokenizer.json
+train_path: runs/student_pipeline/student/tokenizer/pretrain_train.bin
+valid_path: runs/student_pipeline/student/tokenizer/pretrain_valid.bin
+run_dir: runs/student_pipeline/student/pretrain
+batch_size: 8
+gradient_accumulation_steps: 8
+max_steps: 12500
+learning_rate: 0.0006
+min_learning_rate: 0.00006
+schedule: cosine
+warmup_steps: 500
+weight_decay: 0.01
+betas: [0.9, 0.95]
+grad_clip: 1.0
+amp: true
+amp_dtype: bf16
+eval_interval: 250
+eval_batches: 10
+sample_interval: 500
+checkpoint_interval: 500
+sample_prompt: Once upon a time
+model:
+  vocab_size: 10000
+  context_length: 256
+  num_layers: 6
+  d_model: 320
+  d_ff: 896
+  num_heads: 5
+  rope_theta: 10000.0
+  dropout: 0.0
+  attention_backend: sdpa
+  mlp_type: swiglu
+  tie_embeddings: false
