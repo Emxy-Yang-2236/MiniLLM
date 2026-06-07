@@ -1,4 +1,4 @@
-name: cs336-minillm
+name: minillm
 channels:
   - conda-forge
 dependencies:
