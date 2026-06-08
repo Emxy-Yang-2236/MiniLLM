@@ -39,7 +39,7 @@ By the end of the project, you will understand:
 > Project Plan
 
 - **week1**: Build a byte-level BPE tokenizer with GPT2-like pretokenization and the basic neural-network layers.
-- **week2**: Build causal attention, the decoder-only Transformer LM, optimizer, schedule, gradient clipping, and checkpointing.
+- **week2**: Build causal attention, the decoder-only Transformer LM, optimizer, schedule, gradient clipping, and checkpointing. (After completing this week's assignment, you are encouraged to explore top-k token generation with the built-in utilities.)
 - **week3**: Pretrain your LM on TinyStories, generate samples, and run supervised fine-tuning (SFT).
 - **week4**: Evaluate the SFT results, prepare before/after SFT demos, run a light performance benchmark, and write the final report.
 

@@ -311,6 +311,12 @@ def generate_ids(model, input_ids, cfg):
     return generate_ids(model, input_ids, cfg)
 
 
+def next_token_options(model, tokenizer, input_ids, **kwargs):
+    from minillm.model.generation import next_token_options
+
+    return next_token_options(model, tokenizer, input_ids, **kwargs)
+
+
 def pretrain_dataset(path, tokenizer=None, seq_len=16):
     from minillm.data.pretrain_dataset import PretrainDataset
 

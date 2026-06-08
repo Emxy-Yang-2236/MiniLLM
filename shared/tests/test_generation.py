@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import torch
 
-from adapters import default_stop_ids, generate_ids, generate_text, generation_config, get_tokenizer
+from adapters import default_stop_ids, generate_ids, generate_text, generation_config, get_tokenizer, next_token_options
 
 
 class ToyNextTokenModel:
@@ -87,3 +87,16 @@ def test_generate_return_full_text_option():
     )
     assert completion == "!"
     assert full == "a!"
+
+
+def test_next_token_options_returns_full_softmax_top_k_and_restores_train_mode():
+    tok = _cs336_style_tokenizer()
+    model = FixedTokenModel([2], vocab_size=3)
+    model.train()
+    options = next_token_options(model, tok, torch.tensor([[1]]), top_k=2, temperature=1.0)
+    assert model.training is True
+    assert options[0]["rank"] == 1
+    assert options[0]["token_id"] == 2
+    assert options[0]["token_text"] == "!"
+    assert options[0]["prob"] > 0.99
+    assert len(options) == 2

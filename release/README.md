@@ -21,6 +21,20 @@ python scripts/verify_student_release_data.py --dataset_dir ../data/full_release
 python scripts/run_student_pipeline.py --mode smoke --device cpu
 ```
 
+After you have a checkpoint, inspect the next-token distribution with the provided script (optional but interesting!):
+
+```bash
+python scripts/inspect_next_token.py \
+  --ckpt runs/student_pipeline/student/pretrain/checkpoint_last.pt \
+  --prompt "Once upon a time" \
+  --top_k 8 \
+  --steps 20 \
+  --mode choose \
+  --device auto
+```
+
+`--mode greedy` automatically chooses the highest-probability token. `--mode choose` lets you pick from the displayed top-k tokens at each step.
+
 On Apple Silicon, use `--device mps` for a local MPS run. `--device auto` chooses CUDA first, then MPS, then CPU. MPS runs are fp32-only in this project; CUDA mixed-precision benchmark rows should be marked skipped.
 
 The canonical data lives outside this directory in `../data/`.

@@ -138,11 +138,12 @@ Required outcomes:
 - fixed before/after SFT samples;
 - final metrics summary;
 - training loss curves generated from JSONL metrics;
+- optional next-token top-k inspection from a trained checkpoint;
 - held-out SFT eval results;
 - benchmark sanity output from the provided training-measurement scripts;
 - one short report explaining model behavior, limitations, and benchmark results.
 
-Students run and interpret the Training Measurement Mini-lab. They are not expected to implement systems optimizations.
+Students run and interpret the Training Measurement Mini-lab. You are not expected to implement systems optimizations.
 
 The final pipeline and report-generation scripts are provided infrastructure. You may inspect them to understand the required artifacts, but they are not a main implementation target.
 
@@ -160,6 +161,19 @@ Run the following command to get some artifacts for your system report and your 
 python scripts/run_student_pipeline.py --mode student --device cuda
 python scripts/plot_training_curves.py
 ```
+
+To inspect next-token probabilities from a trained checkpoint, run:
+
+```bash
+python scripts/inspect_next_token.py \
+  --ckpt runs/student_pipeline/student/pretrain/checkpoint_last.pt \
+  --prompt "Once upon a time" \
+  --top_k 8 \
+  --steps 20 \
+  --mode greedy
+```
+
+Use `--mode choose` if you want to pick one of the displayed top-k tokens at each step. This script is provided infrastructure; it relies on your tokenizer, model forward pass, and checkpoint.
 
 If CUDA is unavailable, use `--device mps` on Apple Silicon or `--device cpu` elsewhere. MPS runs use fp32 for this project; clearly state that CUDA mixed-precision and CUDA memory results were skipped.
 
