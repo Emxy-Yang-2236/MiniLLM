@@ -45,6 +45,17 @@ class FixedTokenModel(torch.nn.Module):
         return {"logits": logits}
 
 
+class UniformLogitModel(torch.nn.Module):
+    def __init__(self, vocab_size: int):
+        super().__init__()
+        self.cfg = SimpleNamespace(context_length=8)
+        self.dummy = torch.nn.Parameter(torch.zeros(()))
+        self.vocab_size = vocab_size
+
+    def forward(self, input_ids):
+        return {"logits": torch.zeros((*input_ids.shape, self.vocab_size), device=input_ids.device)}
+
+
 def _cs336_style_tokenizer():
     vocab = {0: b"<|endoftext|>", 1: b"a", 2: b"!"}
     return get_tokenizer(vocab, merges=[], special_tokens=["<|endoftext|>"])
@@ -63,6 +74,14 @@ def test_generate_ids_respects_max_new_tokens_without_stop():
     cfg = generation_config(max_new_tokens=3, temperature=0.0, stop_ids=[])
     out = generate_ids(model, torch.tensor([[1, 2]]), cfg)
     assert out.shape == (1, 5)
+
+
+def test_generate_ids_top_p_keeps_crossing_token():
+    model = UniformLogitModel(vocab_size=3)
+    cfg = generation_config(max_new_tokens=1, temperature=1.0, top_p=0.6, stop_ids=[])
+    torch.manual_seed(0)
+    out = generate_ids(model, torch.tensor([[0]]), cfg)
+    assert out.tolist() == [[0, 1]]
 
 
 def test_generate_cs336_style_tokenizer_uses_endoftext_stop_and_no_fake_bos():
