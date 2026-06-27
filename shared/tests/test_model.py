@@ -38,11 +38,11 @@ def test_config_validation_and_model_summary():
         make_config(d_model=30, num_heads=8)
     with pytest.raises(ValueError):
         make_config(attention_backend="flash")
-    cfg = make_config(vocab_size=80, context_length=8, mlp_type="gelu", tie_embeddings=False)
+    cfg = make_config(vocab_size=80, context_length=8, tie_embeddings=False)
     model = build_model(cfg)
     summary = model_summary(model)
     assert summary["parameters"] > 0
-    assert summary["mlp_type"] == "gelu"
+    assert "mlp_type" not in summary
     assert summary["tie_embeddings"] is False
 
 

@@ -17,10 +17,8 @@ class TransformerConfig:
     num_layers: int = 2
     num_heads: int = 4
     rope_theta: float = 10000.0
-    dropout: float = 0.0
     attention_backend: str = "naive"
     tie_embeddings: bool = False
-    mlp_type: str = "swiglu"
 
     def __post_init__(self) -> None:
         if self.vocab_size <= 0 or self.context_length <= 0 or self.num_layers <= 0 or self.num_heads <= 0:
@@ -33,8 +31,6 @@ class TransformerConfig:
             raise ValueError("rope_theta must be positive")
         if self.attention_backend not in {"naive", "sdpa"}:
             raise ValueError("attention_backend must be 'naive' or 'sdpa'")
-        if self.mlp_type not in {"swiglu", "gelu"}:
-            raise ValueError("mlp_type must be 'swiglu' or 'gelu'")
         if self.d_ff is None:
             self.d_ff = _default_d_ff(self.d_model)
         if self.d_ff <= 0:

@@ -3,3 +3,4 @@ reference/
 AGENTS.md
 cs336_assignment1_basics.pdf
 data/
+**/__pycache__/

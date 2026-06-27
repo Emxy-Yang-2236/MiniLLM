@@ -27,7 +27,6 @@ def make_config(**overrides):
         "num_layers": 1,
         "num_heads": 4,
         "rope_theta": 10000.0,
-        "dropout": 0.0,
         "attention_backend": "naive",
     }
     data.update(overrides)

@@ -29,7 +29,5 @@ model:
   d_ff: 896
   num_heads: 5
   rope_theta: 10000.0
-  dropout: 0.0
   attention_backend: sdpa
-  mlp_type: swiglu
   tie_embeddings: false

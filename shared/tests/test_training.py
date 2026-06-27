@@ -36,7 +36,6 @@ def test_pretrain_loop_writes_metrics_and_checkpoint(tmp_path):
             "d_ff": 64,
             "num_heads": 4,
             "context_length": 16,
-            "dropout": 0.0,
             "attention_backend": "naive",
         },
     }
@@ -85,7 +84,6 @@ def test_pretraining_smoke_uses_student_release_dataset(tmp_path):
             "d_ff": 64,
             "num_heads": 4,
             "context_length": 16,
-            "dropout": 0.0,
             "attention_backend": "naive",
         },
     }

@@ -1,9 +1,8 @@
 from .config import TransformerConfig
 from .generation import GenerationConfig, batch_generate, generate, generate_ids
-from .attention import CausalSelfAttention, MultiHeadSelfAttention, scaled_dot_product_attention
+from .attention import MultiHeadSelfAttention, scaled_dot_product_attention
 from .layers import (
     Embedding,
-    GELUMLP,
     Linear,
     RMSNorm,
     RotaryPositionalEmbedding,
@@ -21,11 +20,9 @@ __all__ = [
     "Embedding",
     "RMSNorm",
     "SwiGLU",
-    "GELUMLP",
     "RotaryPositionalEmbedding",
     "scaled_dot_product_attention",
     "MultiHeadSelfAttention",
-    "CausalSelfAttention",
     "softmax",
     "cross_entropy",
     "GenerationConfig",
