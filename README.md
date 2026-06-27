@@ -46,9 +46,9 @@ By the end of the project, you will understand:
 > Workload?
 
 The expected student-written core implementation is about 1800-2200 LOC.
-Most of that code is in tokenizer, Transformer/model components, optimizer/training utilities, pretraining data handling, SFT response-only data masking, and generation.
+Most of that code is in tokenizer, Transformer/model components, optimizer/training utilities, CS336-style batch sampling, SFT response-only data masking, and generation.
 
-Dataset manifest verification, release-data preparation, full pipeline orchestration, SFT train/eval/report glue, run summaries, and code-usage audit scripts are provided as course infrastructure. You should run and read them, but you are not expected to reimplement them.
+Dataset manifest verification, release-data preparation, pretraining data encoding/memmap helpers, full pipeline orchestration, SFT train/eval/report glue, run summaries, and code-usage audit scripts are provided as course infrastructure. You should run and read them, but you are not expected to reimplement them.
 
 > Prerequisites?
 

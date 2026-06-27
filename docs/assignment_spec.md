@@ -49,19 +49,12 @@ Files to edit:
 - `release/minillm/model/attention.py`
 - `release/minillm/model/transformer.py`
 - `release/minillm/model/generation.py`
+- `release/minillm/data/pretrain_dataset.py`
 - `release/minillm/train/optim.py`
 - `release/minillm/train/schedules.py`
 - `release/minillm/train/checkpoint.py`
 - `release/minillm/train/state.py`
 - `release/minillm/train/metrics.py`
-
-Required outcomes:
-- causal self-attention with naive and SDPA backends;
-- Transformer block and Transformer LM built from your Week 1 layers;
-- next-token LM loss wired through your Week 1 `cross_entropy` helper;
-- AdamW, cosine learning-rate schedule, global gradient clipping, checkpoint save/load;
-- generation helper for greedy/sampling-based text generation;
-- public tests and CS336 A1 compatibility tests for attention, Transformer LM, optimizer, schedule, clipping, and checkpointing.
 
 Tests to pass:
 
@@ -83,7 +76,6 @@ Do not use ready-made PyTorch layers or optimizers listed in the banned dependen
 Run the main language-modeling workflow.
 
 Files to edit:
-- `release/minillm/data/pretrain_dataset.py`
 - `release/minillm/train/pretrain.py`
 - `release/minillm/data/sft_dataset.py`
 

@@ -352,15 +352,9 @@ def train_pretrain(cfg, max_steps=None):
 
 
 def run_get_batch(dataset, batch_size, context_length, device):
-    ids = torch.as_tensor(dataset, dtype=torch.long)
-    if ids.ndim != 1:
-        raise ValueError("dataset must be a 1D array of token ids")
-    if len(ids) <= context_length:
-        raise ValueError("dataset must be longer than context_length")
-    starts = torch.randint(0, len(ids) - context_length, (batch_size,))
-    x = torch.stack([ids[start : start + context_length] for start in starts])
-    y = torch.stack([ids[start + 1 : start + context_length + 1] for start in starts])
-    return x.to(device), y.to(device)
+    from minillm.data.pretrain_dataset import get_batch
+
+    return get_batch(dataset, batch_size, context_length, device)
 
 
 def build_optimizer(params, **kwargs):
@@ -434,15 +428,9 @@ def save_checkpoint(
 
 
 def run_save_checkpoint(model, optimizer, iteration, out):
-    torch.save(
-        {
-            "model_state": model.state_dict(),
-            "optimizer_state": optimizer.state_dict(),
-            "iteration": iteration,
-            "step": iteration,
-        },
-        out,
-    )
+    from minillm.train.checkpoint import save_checkpoint as save
+
+    return save(out, model, optimizer=optimizer, step=iteration, config={})
 
 
 def load_checkpoint(path, model=None, optimizer=None, scheduler=None, train_state=None, map_location="cpu"):
@@ -459,13 +447,9 @@ def load_checkpoint(path, model=None, optimizer=None, scheduler=None, train_stat
 
 
 def run_load_checkpoint(src, model, optimizer):
-    payload = torch.load(src, map_location="cpu", weights_only=False)
-    model_state = payload.get("model_state", payload.get("model"))
-    optimizer_state = payload.get("optimizer_state", payload.get("optimizer"))
-    if model_state is None or optimizer_state is None:
-        raise KeyError("checkpoint must contain model and optimizer state")
-    model.load_state_dict(model_state)
-    optimizer.load_state_dict(optimizer_state)
+    from minillm.train.checkpoint import load_checkpoint as load
+
+    payload = load(src, model=model, optimizer=optimizer, map_location="cpu")
     return int(payload.get("iteration", payload.get("step", 0)))
 
 
