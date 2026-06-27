@@ -1,3 +1,4 @@
+import hashlib
 import os
 import pickle
 from pathlib import Path
@@ -10,6 +11,45 @@ from typing import Any
 
 
 SNAPSHOT_DIR = Path(__file__).resolve().parent / "_snapshots"
+FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
+
+
+def _prepare_tiktoken_gpt2_cache() -> None:
+    """Seed tiktoken's GPT-2 cache from vendored fixtures for offline tests."""
+
+    cache_setting = os.environ.get("TIKTOKEN_CACHE_DIR")
+    if cache_setting:
+        cache_dir = Path(cache_setting)
+    else:
+        cache_dir = Path(os.environ.get("TMPDIR", "/tmp")) / "minillm-tiktoken-cache"
+        os.environ["TIKTOKEN_CACHE_DIR"] = str(cache_dir)
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_items = [
+        (
+            "https://openaipublic.blob.core.windows.net/gpt-2/encodings/main/encoder.json",
+            FIXTURES_DIR / "gpt2_vocab.json",
+            "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783",
+            b"",
+        ),
+        (
+            "https://openaipublic.blob.core.windows.net/gpt-2/encodings/main/vocab.bpe",
+            FIXTURES_DIR / "gpt2_merges.txt",
+            "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+            b"#version: 0.2\n",
+        ),
+    ]
+    for url, fixture_path, expected_sha256, prefix in cache_items:
+        data = prefix + fixture_path.read_bytes()
+        actual_sha256 = hashlib.sha256(data).hexdigest()
+        if actual_sha256 != expected_sha256:
+            raise RuntimeError(f"vendored tiktoken fixture hash mismatch for {fixture_path}")
+        cache_path = cache_dir / hashlib.sha1(url.encode()).hexdigest()
+        if not cache_path.exists() or hashlib.sha256(cache_path.read_bytes()).hexdigest() != expected_sha256:
+            cache_path.write_bytes(data)
+
+
+_prepare_tiktoken_gpt2_cache()
 
 
 class DEFAULT:

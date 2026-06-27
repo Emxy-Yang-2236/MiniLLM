@@ -29,7 +29,21 @@ def test_train_bpe_from_file_preserves_newlines_max_bytes_and_stats(tmp_path):
         max_bytes=max_bytes,
         pretokenizer="gpt2_like",
     )
-    assert out.exists()
+    assert out.exists(), "train_bpe_from_file should write tokenizer.json at output_path; call tok.save(output_path)"
+    tokenizer_manifest_path = out.with_name("tokenizer_manifest.json")
+    assert tokenizer_manifest_path.exists(), (
+        "train_bpe_from_file should write tokenizer_manifest.json next to tokenizer.json; "
+        "call tok.save_manifest(output_path) after tok.save(output_path)"
+    )
+    tokenizer_manifest = json.loads(tokenizer_manifest_path.read_text(encoding="utf-8"))
+    assert tokenizer_manifest["tokenizer_sha256"] == module.tokenizer_file_sha256(out), (
+        "tokenizer_manifest.json should record the sha256 of tokenizer.json"
+    )
+    assert tokenizer_manifest["vocab_size"] == tok.vocab_size
+    assert tokenizer_manifest["num_merges"] == len(tok.merges)
+    assert tokenizer_manifest["pretokenizer"] == "gpt2_like"
+    assert tokenizer_manifest["special_tokens"] == tok.special_tokens
+    assert tokenizer_manifest["tie_break"] == tok.tie_break
     assert tok.decode(tok.encode("hello\nworld"), skip_special=False) == "hello\nworld"
     stats = tok.describe()["stats"]
     assert stats["input_bytes"] <= max_bytes

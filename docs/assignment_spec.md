@@ -10,16 +10,13 @@ Files to edit:
 - `release/minillm/tokenizer/bpe.py`
 - `release/minillm/model/layers.py`
 
-Required outcomes:
-- train BPE with deterministic merge ordering;
-- handle special tokens before normal pretokenization;
-- preserve unicode, repeated spaces, and newlines;
-- implement encode/decode, batch encode/decode, encode_iterable, save/load, and tokenizer metadata;
-- implement from-scratch Linear, Embedding, RMSNorm, SwiGLU/GELU MLP pieces, RoPE, softmax, and cross entropy.
+Week 1 validation order:
 
-Only the public functions/classes left in `release/minillm/tokenizer/bpe.py` are required interfaces. You may create any private BPE helpers you want; helper names such as pair-counting or merge-application are not part of the grading contract.
+1. Run the Week 1 tests below.
+2. After the tests pass, train a tokenizer once and check that the tokenizer artifacts are written.
+3. Keep the tokenizer artifacts; later weeks will use a trained tokenizer to encode text for language-model pretraining.
 
-Tests to pass:
+Tests to pass first:
 
 ```bash
 cd release
@@ -32,13 +29,17 @@ python -m pytest -q ../shared/tests/cs336_a1_exact/test_train_bpe.py
 python -m pytest -q ../shared/tests/cs336_a1_exact/test_nn_utils.py
 ```
 
-Optional local artifact check:
+Then train a tokenizer:
 
 ```bash
 python scripts/train_tokenizer.py --config configs/tokenizer_smoke.yaml
 ```
 
-This writes `runs/student_pipeline/smoke/tokenizer/tokenizer.json` and `tokenizer_manifest.json`.
+This is a small Week 1 training check, not the final full-data tokenizer run. It should write:
+- `runs/student_pipeline/smoke/tokenizer/tokenizer.json`
+- `runs/student_pipeline/smoke/tokenizer/tokenizer_manifest.json`
+
+The full release dataset/config will be specified separately. The important Week 1 point is that your tokenizer implementation can both pass correctness tests and produce a saved tokenizer artifact.
 
 ## Week 2: Attention, Transformer LM, And Training Utilities
 
