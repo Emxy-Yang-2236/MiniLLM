@@ -34,11 +34,11 @@ def test_create_optimizer_scheduler_and_apply_lr_from_cfg():
         "weight_decay": 0.0,
         "warmup_steps": 2,
         "min_learning_rate": 0.001,
-        "schedule": "linear",
+        "schedule": "cosine",
     }
     opt = create_optimizer_from_cfg(model, cfg)
     assert opt.param_groups[0]["lr"] == 0.01
     sched = create_scheduler_from_cfg(cfg, max_steps=10)
-    assert sched.kind == "linear"
+    assert sched.kind == "cosine"
     apply_lr(opt, 0.002)
     assert all(group["lr"] == 0.002 for group in opt.param_groups)

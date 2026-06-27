@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import sys
-import math
 from pathlib import Path
 
 import torch
@@ -399,14 +398,15 @@ def run_get_lr_cosine_schedule(
     warmup_iters,
     cosine_cycle_iters,
 ):
-    if warmup_iters > 0 and it < warmup_iters:
-        return max_learning_rate * it / warmup_iters
-    if it > cosine_cycle_iters:
-        return min_learning_rate
-    denom = max(1, cosine_cycle_iters - warmup_iters)
-    progress = (it - warmup_iters) / denom
-    coeff = 0.5 * (1.0 + math.cos(math.pi * progress))
-    return min_learning_rate + coeff * (max_learning_rate - min_learning_rate)
+    from minillm.train.schedules import cosine_warmup
+
+    return cosine_warmup(
+        step=it,
+        max_steps=cosine_cycle_iters,
+        warmup_steps=warmup_iters,
+        max_lr=max_learning_rate,
+        min_lr=min_learning_rate,
+    )
 
 
 def save_checkpoint(

@@ -209,15 +209,10 @@ def softmax(x: torch.Tensor, dim: int = -1) -> torch.Tensor:
 def cross_entropy(logits: torch.Tensor, targets: torch.Tensor, ignore_index: int = -100) -> torch.Tensor:
     """next-token cross-entropy loss.
 
-    This function is described in CS336 A1 Section 4, but lives in this starter
-    file because it is a low-level tensor utility used by the Transformer LM.
-
     Args:
         logits: Predicted logits with shape `(..., vocab_size)`.
-        targets: Integer target token IDs with shape `(...)`, matching the
-            batch-like dimensions of `logits`.
-        ignore_index: Target value that should be excluded from the average
-            loss, used later for response-only SFT labels.
+        targets: Integer target token IDs with shape `(...)`, matching the batch-like dimensions of `logits`.
+        ignore_index: Target value that should be excluded from the average loss, used later for response-only SFT labels.
 
     Returns:
         Scalar tensor: the mean cross-entropy over non-ignored targets.
@@ -227,8 +222,5 @@ def cross_entropy(logits: torch.Tensor, targets: torch.Tensor, ignore_index: int
         - Cancel `log` and `exp` where possible, using the log-sum-exp trick.
         - Handle arbitrary leading batch-like dimensions.
         - Do not use `torch.nn.functional.cross_entropy`.
-
-    Adapter/test:
-        `adapters.run_cross_entropy`; `pytest -k test_cross_entropy`.
     """
-    raise NotImplementedError("Week 1 TODO: implement cross-entropy without F.cross_entropy")
+    raise NotImplementedError("Week 2 TODO: implement cross-entropy without F.cross_entropy")
