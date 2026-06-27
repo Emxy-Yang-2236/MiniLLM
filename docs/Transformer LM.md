@@ -42,7 +42,7 @@ After `num_layers` Transformer blocks, we will take the final activations and tu
 
 We will implement the "pre-norm" Transformer block (detailed later), which additionally requires the use of layer normalization (detailed later) after the final Transformer block to ensure its outputs are properly scaled.
 
-After this normalization, we will use a standard learned linear transformation to convert the output of the Transformer blocks into predicted next-token logits (see, e.g., [A. Radford et al. [7] equation 2]).
+After this normalization, we will use a standard learned linear transformation to convert the output of the Transformer blocks into predicted next-token logits (see, e.g., Radford et al. [1], equation 2).
 
 ## Remark: Batching, Einsum and Efficient Computation
 
@@ -239,11 +239,11 @@ The **forward** method should select the embedding vector for each token ID by i
 
 ## Pre-Norm Transformer Block
 
-Each Transformer block has two sub-layers: a multi-head self-attention mechanism and a position-wise feed-forward network ([A. Vaswani et al., 2017], section 3.1).
+Each Transformer block has two sub-layers: a multi-head self-attention mechanism and a position-wise feed-forward network (Vaswani et al. [2], section 3.1).
 
 In the original Transformer paper, the model uses a residual connection around each of the two sub-layers, followed by layer normalization. 
 This architecture is commonly known as the "post-norm" Transformer, since layer normalization is applied to the sub-layer output. 
-However, a variety of work has found that moving layer normalization from the output of each sub-layer to the input of each sub-layer (with an additional layer normalization after the final Transformer block) improves Transformer training stability [T. Q. Nguyen et al., 2019; R. Xiong et al., 2020] — see Figure 2 for a visual representation of
+However, a variety of work has found that moving layer normalization from the output of each sub-layer to the input of each sub-layer (with an additional layer normalization after the final Transformer block) improves Transformer training stability [3, 4] — see Figure 2 for a visual representation of
 this "pre-norm" Transformer block. 
 
 <figure align="center">
@@ -251,15 +251,15 @@ this "pre-norm" Transformer block.
   <figcaption><b>Figure 2:</b> A pre-norm Transformer block.</figcaption>
 </figure>
 
-The output of each Transformer block sub-layer is then added to the sub-layer input via the residual connection ([A. Vaswani et al. [8]], section 5.4). 
+The output of each Transformer block sub-layer is then added to the sub-layer input via the residual connection (Vaswani et al. [2], section 5.4). 
 An intuition for pre-norm is that there is a clean "residual stream" without any normalization going from the input embeddings to the final output of the Transformer, which is purported to improve gradient flow. 
 This pre-norm Transformer is now the standard used in language models today (e.g., GPT-3, LLaMA, PaLM, etc.), so we will implement this variant. 
 We will walk through each of the components of a pre-norm Transformer block, implementing them in sequence.
 
 ###  Root Mean Square Layer Normalization
 
-The original Transformer implementation of [A. Vaswani et al. [8]] uses layer normalization [J. L. Ba et al., 2016] to normalize activations. 
-Following [H. Touvron et al. [12]], we will use root mean square layer normalization ([RMSNorm; B. Zhang et al. [13]], equation 4) for layer normalization. 
+The original Transformer implementation of Vaswani et al. [2] uses layer normalization [5] to normalize activations. 
+Following Touvron et al. [6], we will use root mean square layer normalization (RMSNorm; Zhang and Sennrich [7], equation 4) for layer normalization. 
 Given a vector $a \in \mathbb{R}^{d_{\text{model}}}$ of activations, `RMSNorm` will rescale each activation $a_i$ as follows:
 
 $$
@@ -295,24 +295,24 @@ return result.to(in_dtype)
   <figcaption><b>Figure 3:</b> Comparing the SiLU (aka Swish) and ReLU activation functions.</figcaption>
 </figure>
 
-In the original Transformer paper (section 3.3 of [A. Vaswani et al. [8]]), the Transformer feed-forward network consists of two linear transformations with a ReLU activation (ReLU(𝑥) = max(0, 𝑥)) between them. 
+In the original Transformer paper (Vaswani et al. [2], section 3.3), the Transformer feed-forward network consists of two linear transformations with a ReLU activation (ReLU(𝑥) = max(0, 𝑥)) between them. 
 In that original architecture, the dimensionality of the inner feed-forward layer is typically $4x$ the input dimensionality.
 
 However, modern language models tend to incorporate two main changes compared to this original design: 
 they use another activation function and employ a gating mechanism.
-Specifically, we will implement the "SwiGLU" activation function adopted in LLMs like Llama 3 [A. Grattafiori et al., 2024] and Qwen 2.5 [A. Yang et al., 2024], 
+Specifically, we will implement the "SwiGLU" activation function adopted in LLMs like Llama 3 [8] and Qwen 2.5 [9], 
 which combines the SiLU (often called Swish) activation with a gating mechanism called a Gated Linear Unit (GLU). 
 We will also omit the bias terms sometimes used in linear layers, 
-following most modern LLMs since PaLM [A. Chowdhery et al., 2022] and LLaMA [H. Touvron et al., 2023].
+following most modern LLMs since PaLM [10] and LLaMA [6].
 
-The SiLU or Swish activation function [D. Hendrycks et al., 2016; S. Elfwing et al., 2017] is defined as follows:
+The SiLU or Swish activation function [11, 12] is defined as follows:
 $$
 \text{SiLU}(x) = x \cdot \sigma(x) = \frac{x}{1 + e^{-x}} \qquad (5)
 $$
 
 As can be seen in Figure 3, the SiLU activation function is similar to the ReLU activation function, but is smooth at zero.
 
-Gated Linear Units (GLUs) were originally defined by [Y. N. Dauphin et al. [19]] as the element-wise product of a linear transformation passed through a sigmoid function and another linear transformation:
+Gated Linear Units (GLUs) were originally defined by Dauphin et al. [13] as the element-wise product of a linear transformation passed through a sigmoid function and another linear transformation:
 
 $$
 \text{GLU}(x, W_1, W_2) = \sigma(W_1x) \odot W_2x, \qquad (6)
@@ -331,7 +331,7 @@ $$
 where $x \in \mathbb{R}^{d_{\text{model}}},$ $W_1, W_3 \in \mathbb{R}^{d_\text{ff} \times d_{\text{model}}},$ $W_2\in\mathbb{R}^{d_{\text{model}\times d_{\text{ff}}}},$ and canonically, $d_{\text{ff}} = \frac{8}{3}d_{\text{model}}.$ 
 For concrete implementations, it is fine to round this to a nearby multiple of 64 for hardware efficiency.
 
-[N. Shazeer [20]] first proposed combining the SiLU/Swish activation with GLUs and conducted experiments showing that SwiGLU outperforms baselines like ReLU and SiLU (without gating) on language modeling tasks. 
+Shazeer [14] first proposed combining the SiLU/Swish activation with GLUs and conducted experiments showing that SwiGLU outperforms baselines like ReLU and SiLU (without gating) on language modeling tasks. 
 It's a good practice to compare SwiGLU and SiLU (but not demanded). 
 Though we’ve mentioned some heuristic arguments for these components (and the papers provide more supporting evidence), 
 it’s good to keep an empirical perspective: a now famous quote from Shazeer’s paper is
@@ -344,7 +344,7 @@ it’s good to keep an empirical perspective: a now famous quote from Shazeer’
 
 ### Relative Positional Embeddings
 
-To inject positional information into the model, we will implement Rotary Position Embeddings [J. Su et al., 2021], often called RoPE. 
+To inject positional information into the model, we will implement Rotary Position Embeddings [15], often called RoPE. 
 For a given query token $q^{(i)} = W_q x^{(i)} \in \mathbb{R}^d$ at token position $i$, we will apply a pairwise rotation matrix $R^i$, giving us $q'^{(i)} = R^i q^{(i)} = R^i W_q x^{(i)}$. 
 Here, $R^i$ will rotate pairs of embedding elements $q^{(i)}_{2k-1:2k}$ as 2d vectors by the angle $\theta_{i,k} = \frac{i}{\Theta^{(2k-2)/d}}$ for $k \in \{1, \ldots, d/2\}$ and some constant $\Theta$. Thus, we can consider $R^i$ to be a block-diagonal matrix of size $d \times d$, with blocks $R^i_k$ for $k \in \{1, \ldots, \frac{d}{2}\}$, with
 
@@ -383,7 +383,7 @@ Notice that this layer has **no** learnable parameters.
 
 ### Scaled Dot-Product Attention
 
-We will now implement scaled dot-product attention as described in [A. Vaswani et al. [8]] (section 3.2.1). 
+We will now implement scaled dot-product attention as described in Vaswani et al. [2] (section 3.2.1). 
 As a preliminary step, the definition of the Attention operation will make use of softmax, an operation that takes an unnormalized vector of scores and turns it into a normalized distribution:
 
 $$
@@ -422,7 +422,7 @@ Computationally, it will be much more efficient to use masking than to compute a
 
 ### Causal Multi-Head Self-Attention
 
-We will implement multi-head self-attention as described in section 3.2.2 of [A. Vaswani et al. [8]]. 
+We will implement multi-head self-attention as described in section 3.2.2 of Vaswani et al. [2]. 
 Recall that, mathematically, the operation of applying multi-head attention is defined as follows:
 
 $$
@@ -500,3 +500,35 @@ and return it as `out["loss"]`.
 
 > Your implementation should be in `release/minillm/model/transformer.py` (class TransformerLM(nn.Module)).
 (You can do this in week2.)
+
+## References
+
+[1] A. Radford, K. Narasimhan, T. Salimans, and I. Sutskever, “Improving Language Understanding by Generative Pre-Training.” 2018.
+
+[2] A. Vaswani et al., “Attention is All You Need,” in Proc. of NeurIPS, 2017.
+
+[3] T. Q. Nguyen and J. Salazar, “Transformers without Tears: Improving the Normalization of Self-Attention,” in Proc. of IWSLT, 2019.
+
+[4] R. Xiong et al., “On Layer Normalization in the Transformer Architecture,” in Proc. of ICML, 2020.
+
+[5] J. L. Ba, J. R. Kiros, and G. E. Hinton, “Layer Normalization.” 2016.
+
+[6] H. Touvron et al., “LLaMA: Open and Efficient Foundation Language Models.” 2023.
+
+[7] B. Zhang and R. Sennrich, “Root Mean Square Layer Normalization,” in Proc. of NeurIPS, 2019.
+
+[8] A. Grattafiori et al., “The Llama 3 Herd of Models.” 2024.
+
+[9] A. Yang et al., “Qwen2.5 Technical Report.” 2024.
+
+[10] A. Chowdhery et al., “PaLM: Scaling Language Modeling with Pathways.” 2022.
+
+[11] D. Hendrycks and K. Gimpel, “Bridging Nonlinearities and Stochastic Regularizers with Gaussian Error Linear Units.” 2016.
+
+[12] S. Elfwing, E. Uchibe, and K. Doya, “Sigmoid-Weighted Linear Units for Neural Network Function Approximation in Reinforcement Learning.” 2017.
+
+[13] Y. N. Dauphin, A. Fan, M. Auli, and D. Grangier, “Language Modeling with Gated Convolutional Networks.” 2016.
+
+[14] N. Shazeer, “GLU Variants Improve Transformer.” 2020.
+
+[15] J. Su, Y. Lu, S. Pan, B. Wen, and Y. Liu, “RoFormer: Enhanced Transformer with Rotary Position Embedding.” 2021.
