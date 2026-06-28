@@ -106,3 +106,66 @@ In `release/minillm/train/pretrain.py`, complete:
 - `train_one_step(...)`: set the learning rate, fetch training batches, compute loss, backpropagate, clip gradients, step the optimizer and scheduler, update `TrainState`, and return a metrics row.
 
 The provided `train_pretrain(cfg, max_steps=None)` wrapper calls these functions and handles the surrounding project pipeline.
+
+## Running TinyStories Pretraining
+
+After the tokenizer, Transformer LM, optimizer, scheduler, checkpointing, and generation tests pass, run pretraining from `release/`.
+Pretraining uses encoded `.bin` files, not raw `.txt` files.
+
+### Smoke run: quick correctness check
+
+```bash
+cd release
+python scripts/run_student_pipeline.py --mode smoke --device cpu
+```
+
+Smoke mode is only a path check. It should produce:
+
+```text
+runs/student_pipeline/smoke/pretrain/checkpoint_last.pt
+outputs/smoke/metrics_pretrain.jsonl
+outputs/smoke/pretrain_samples.md
+```
+
+### Full run: main training evidence
+
+```bash
+cd release
+python scripts/run_student_pipeline.py --mode student --device cuda
+```
+
+Use `--device mps` on Apple Silicon or `--device cpu` if CUDA is unavailable.
+This is the main run for the final report. Inspect:
+
+```text
+runs/student_pipeline/student/pretrain/checkpoint_last.pt
+outputs/release_candidate/metrics_pretrain.jsonl
+outputs/release_candidate/pretrain_samples.md
+outputs/release_candidate/run_summary.md
+```
+
+The pretraining loss should move downward, and fixed-prompt samples should become more TinyStories-like than random text.
+
+### Manual debug: pretraining only
+
+If tokenizer and encoded `.bin` files already exist, you can debug only the pretraining loop:
+
+```bash
+cd release
+python scripts/train_pretrain.py \
+  --config configs/pretrain_smoke.yaml \
+  --max_steps 4 \
+  --device cpu
+```
+
+For full pretraining only:
+
+```bash
+cd release
+python scripts/train_pretrain.py \
+  --config configs/pretrain_student.yaml \
+  --device cuda
+```
+
+Manual `train_pretrain.py` does not run SFT, final evaluation, or report generation.
+Use `run_student_pipeline.py --mode student` when you need final assignment artifacts.

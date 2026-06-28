@@ -207,7 +207,6 @@ and the vocabulary has a special token `<|endoftext|>`.
 ## Experimenting with BPE Tokenizer Training
 
 Let’s train a byte-level BPE tokenizer on the TinyStories dataset. 
-Instructions to find / download the dataset can be found in Section 1.
 Before you start, we recommend taking a look at the TinyStories dataset to get a sense of what’s in the data.
 
 ### Parallelizing pre-tokenization
@@ -347,6 +346,108 @@ These methods are what the pretraining and SFT code will use after `tokenizer.js
 The starter already provides `save(...)`, `load(...)`, `describe(...)`, and `stable_hash(...)`.
 These helpers do not change the BPE algorithm, but they are required for reproducible runs and for checking that encoded `.bin` files match the tokenizer that produced them.
 You should understand what they save, but you do not need to reimplement them.
+
+## Training BPE Tokenizer
+
+### Step 0: Download TinyStories
+
+MiniLLM expects the raw TinyStories files under `../data/raw/tinystories/`, relative to `release/`.
+Download the official train and validation text files:
+
+```bash
+mkdir -p ../data/raw/tinystories
+
+wget -O ../data/raw/tinystories/TinyStoriesV2-GPT4-train.txt \
+  https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-train.txt
+
+wget -O ../data/raw/tinystories/TinyStoriesV2-GPT4-valid.txt \
+  https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-valid.txt
+```
+
+You should train the tokenizer only on the train split. 
+The validation split is encoded later for language-model validation, but it is not used to learn BPE merges.
+
+### Step 1: Pass the tokenizer tests
+
+Before training a large tokenizer, make sure your implementation passes the tokenizer tests:
+
+```bash
+python -m pytest -q ../shared/tests/test_tokenizer*.py
+python -m pytest -q ../shared/tests/test_cs336_tokenizer_contract.py
+python -m pytest -q ../shared/tests/cs336_a1_exact/test_tokenizer.py
+python -m pytest -q ../shared/tests/cs336_a1_exact/test_train_bpe.py
+```
+
+### Step 2: Train a small smoke tokenizer
+
+First run the small tokenizer config. 
+This uses only a prefix of TinyStories and is meant for debugging, not for the final model:
+
+```bash
+python scripts/train_tokenizer.py --config configs/tokenizer_smoke.yaml
+```
+
+This writes:
+
+```text
+runs/student_pipeline/smoke/tokenizer/tokenizer.json
+runs/student_pipeline/smoke/tokenizer/tokenizer_manifest.json
+```
+
+Use this smoke run to catch obvious bugs quickly. 
+If this command is very slow or fails, do not start the full tokenizer run yet.
+
+### Step 3: Train the official TinyStories 10k tokenizer
+
+After the smoke tokenizer works, train the tokenizer used by the full MiniLLM project:
+
+```bash
+python scripts/train_tokenizer.py --config configs/tokenizer_tinystories_10k.yaml
+```
+
+This config uses:
+
+```text
+input_path: ../data/raw/tinystories/TinyStoriesV2-GPT4-train.txt
+vocab_size: 10000
+special_tokens: ["<|endoftext|>"]
+pretokenizer: gpt2_like
+tie_break: max
+```
+
+It writes:
+
+```text
+runs/tokenizer_tinystories_10k/tokenizer.json
+runs/tokenizer_tinystories_10k/tokenizer_manifest.json
+```
+
+The manifest records the source path, source hash, vocab size, number of merges, special tokens, pre-tokenizer type, tie-breaking rule, and elapsed time. 
+This file is useful for debugging and for checking that later encoded files were produced with the same tokenizer.
+
+### Step 4: Encode TinyStories train and valid
+
+Once `tokenizer.json` exists, encode both TinyStories splits into binary token files:
+
+```bash
+python scripts/encode_dataset.py --config configs/encode_tinystories_10k.yaml
+```
+
+This writes:
+
+```text
+runs/tokenizer_tinystories_10k/tinystories_train.bin
+runs/tokenizer_tinystories_10k/tinystories_train.manifest.json
+runs/tokenizer_tinystories_10k/tinystories_valid.bin
+runs/tokenizer_tinystories_10k/tinystories_valid.manifest.json
+```
+
+Because `vocab_size = 10000 < 65536`, the encoded `.bin` files use `uint16`.
+The training code casts token IDs to `torch.long` when it builds batches.
+
+The encoded manifests record the tokenizer hash. 
+If you change the tokenizer code, special tokens, pre-tokenizer, or vocabulary size, the old `.bin` files and old checkpoints are stale. 
+Regenerate the tokenizer, encoded `.bin` files, and any checkpoints before trusting new training results.
 
 
 ## References

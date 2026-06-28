@@ -43,7 +43,7 @@ The full release dataset/config will be specified separately. The important Week
 
 ## Week 2: Attention, Transformer LM, And Training Utilities
 
-Implement causal self-attention, the full Transformer language model, generation, and training utilities.
+Implement causal self-attention, the full Transformer language model, generation, and training utilities. Generation includes greedy decoding, temperature sampling, top-k sampling, top-p sampling, and `<|endoftext|>` stopping.
 
 Files to edit:
 - `release/minillm/model/attention.py`
@@ -53,8 +53,6 @@ Files to edit:
 - `release/minillm/train/optim.py`
 - `release/minillm/train/schedules.py`
 - `release/minillm/train/checkpoint.py`
-- `release/minillm/train/state.py`
-- `release/minillm/train/metrics.py`
 
 Tests to pass:
 
@@ -87,7 +85,6 @@ Required outcomes:
 - run SFT from your own pretraining checkpoint;
 - evaluate SFT on the fixed release SFT/eval data.
 
-Release-data verification, manifest handling, the top-level pipeline script, SFT train loop, and SFT eval/report glue are provided. Your SFT implementation work is the core data path: prompt/response tokenization, truncation, padding, and response-only labels.
 
 SFT is a template-conditioned behavior demo. It should show short story-template following and single-label classification. It is not meant to prove arithmetic reasoning or general assistant behavior.
 
@@ -105,6 +102,15 @@ Pipeline check:
 ```bash
 python scripts/verify_student_release_data.py --dataset_dir ../data/full_release
 python scripts/run_student_pipeline.py --mode smoke --device cpu
+```
+
+If you only want to debug the pretraining loop after tokenizer and encoded `.bin` files exist, run:
+
+```bash
+python scripts/train_pretrain.py \
+  --config configs/pretrain_smoke.yaml \
+  --max_steps 4 \
+  --device cpu
 ```
 
 Smoke mode should produce:
