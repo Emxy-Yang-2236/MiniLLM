@@ -63,7 +63,7 @@ Helpful but not required:
 
 ## Get started
 
-See [Beginer's_Guide.md](docs/Beginer's_Guide.md) to start your trip.
+See [Beginner_Guide.md](docs/Beginner_Guide.md) to start your trip.
 
 Environment files are provided:
 

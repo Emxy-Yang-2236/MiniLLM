@@ -1,4 +1,4 @@
-# Beginner's Guide
+# Beginner Guide
 
 > This document introduces the general layout of the project.
 
@@ -13,8 +13,8 @@ They are prompts for reflection, intended to help you build a broader view of th
 
 This is only an introduction.
 
-- See [assignment_spec.md](assignment_spec.md) for assignment specifications, including grading policy and deadlines.
-- See [Index_tutorial.md](Index_tutorial.md) to start the tutorial.
+- See [assignment_spec.md](assignment_spec.md) for weekly tasks, tests, grading policy, and submission requirements.
+- See [Index_tutorial.md](Index_tutorial.md) for the recommended tutorial order.
 
 Now, let's look at this repository more carefully.
 
@@ -23,7 +23,7 @@ Now, let's look at this repository more carefully.
 This repository is organized around two parallel implementations:
 
 - `release/` is the version you work in. It contains the starter `minillm` package, runnable scripts, YAML configs, and TODOs.
-- `reference/` is the instructor implementation. It mirrors the release layout, but the core components are complete. Use it only as an instructor validation target unless your course staff explicitly gives access.
+- `reference/` is the instructor implementation. It mirrors the release layout, but students do not need to use it unless course staff explicitly says so.
 - `shared/` contains public tests and fixtures. The tests call adapter functions so the same tests can run against either `release/` or `reference/`.
 - `data/` contains TinyStories raw files and the fixed MiniLLM SFT/eval release data. Do not edit dataset files by hand.
 - `docs/` contains the assignment specification and tutorial notes.
