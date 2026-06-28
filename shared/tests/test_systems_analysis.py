@@ -83,4 +83,4 @@ def test_benchmark_csv_roundtrip_keeps_schema(tmp_path):
 def test_training_measurement_report_template_exists():
     repo = Path(__file__).resolve().parents[2]
     assert (repo / "reports" / "templates" / "training_measurement_report.md").exists()
-    assert (repo / "docs" / "training_measurement_questions.md").exists()
+    assert (repo / "docs" / "Training Measurement Mini-lab.md").exists()

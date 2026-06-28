@@ -8,7 +8,7 @@ import torch
 
 
 ROOT = Path(__file__).resolve().parents[2]
-IMPL = os.environ.get("MINILLM_IMPL", "reference")
+IMPL = os.environ.get("MINILLM_IMPL", "release")
 IMPL_PATH = ROOT / IMPL
 if not IMPL_PATH.exists():
     raise RuntimeError(f"unknown MINILLM_IMPL={IMPL!r}; expected {IMPL_PATH}")

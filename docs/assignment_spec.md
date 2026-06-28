@@ -194,4 +194,4 @@ Compress the three artifacts into a `.zip` file for submission.
 ## Report Requirements
 
 The report format is flexible. You do not have to follow a fixed template, but every important claim should point to an artifact path, metric, sample, or command output.
-Refer to [model_report.md](../reports/templates/model_report.md) and [training_measurment_report.md](../reports/templates/training_measurement_report.md) for required content in your report.
+Refer to [model_report.md](../reports/templates/model_report.md) and [training_measurement_report.md](../reports/templates/training_measurement_report.md) for required content in your report.
