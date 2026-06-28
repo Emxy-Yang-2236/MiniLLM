@@ -1,208 +1,143 @@
 # Assignment Spec
 
-> This document is a **formal assignment requirement**.
+> This document is the formal assignment requirement.
+
+MiniLLM is a four-week project. You will implement a tokenizer, a Transformer language model, the core training utilities, TinyStories pretraining, a small SFT demo, and a final measurement/report package.
+
+The starter code lives in `release/`. Unless stated otherwise, run commands from `release/`.
 
 ## Week 1: Tokenizer And Basic Layers
 
-Implement a byte-level BPE tokenizer with GPT-2-like pretokenization and the small neural-network layers used by the Transformer.
+Week 1 builds the pieces that turn text into token IDs and token IDs into vectors.
 
-Files to edit:
+### Files To Edit
+
 - `release/minillm/tokenizer/bpe.py`
+  - train a byte-level BPE tokenizer;
+  - implement GPT-2-like pretokenization;
+  - handle `<|endoftext|>` as the official special token;
+  - implement encode/decode, iterable encode, batch helpers, save/load compatibility.
 - `release/minillm/model/layers.py`
+  - implement `Linear`, `Embedding`, `RMSNorm`, `SwiGLU`, `RotaryPositionalEmbedding`, and `softmax`;
+  - do not implement `cross_entropy` yet; that is part of Week 2.
 
-Week 1 validation order:
+### Tests To Pass
 
-1. Run the Week 1 tests below.
-2. After the tests pass, train a tokenizer once and check that the tokenizer artifacts are written.
-3. Keep the tokenizer artifacts; later weeks will use a trained tokenizer to encode text for language-model pretraining.
-
-Tests to pass first:
+Tokenizer tests:
 
 ```bash
-cd release
 python -m pytest -q ../shared/tests/test_tokenizer*.py
-python -m pytest -q ../shared/tests/test_layers.py
 python -m pytest -q ../shared/tests/test_cs336_tokenizer_contract.py
-python -m pytest -q ../shared/tests/test_cs336_layers_contract.py
 python -m pytest -q ../shared/tests/cs336_a1_exact/test_tokenizer.py
 python -m pytest -q ../shared/tests/cs336_a1_exact/test_train_bpe.py
+```
+
+Layer tests:
+
+```bash
+python -m pytest -q ../shared/tests/test_layers.py
+python -m pytest -q ../shared/tests/test_cs336_layers_contract.py
 python -m pytest -q ../shared/tests/cs336_a1_exact/test_nn_utils.py
 ```
 
-Then train a tokenizer:
+After tests pass, you should train a small tokenizer as described in the tutorial.
+
+
+## Week 2: Transformer LM And Training Utilities
+
+Week 2 builds the language model and the reusable training utilities.
+
+### Files To Edit
+
+- `release/minillm/model/layers.py`
+  - implement `cross_entropy`.
+- `release/minillm/model/attention.py`
+  - implement scaled dot-product attention and causal multi-head self-attention.
+- `release/minillm/model/transformer.py`
+  - implement the pre-norm Transformer block and `TransformerLM`.
+- `release/minillm/model/generation.py`
+  - implement greedy, temperature, top-k, top-p generation and `<|endoftext|>` stopping.
+- `release/minillm/data/pretrain_dataset.py`
+  - implement `get_batch`.
+  - The larger memmap dataset classes are provided infrastructure.
+- `release/minillm/train/optim.py`
+  - implement AdamW and global gradient clipping.
+- `release/minillm/train/schedules.py`
+  - implement cosine learning-rate warmup.
+- `release/minillm/train/checkpoint.py`
+  - implement save/load checkpoint helpers.
+
+### Tests To Pass
+
+Model and generation tests:
 
 ```bash
-python scripts/train_tokenizer.py --config configs/tokenizer_smoke.yaml
+python -m pytest -q ../shared/tests/test_model.py ../shared/tests/test_generation.py
+python -m pytest -q ../shared/tests/test_cs336_transformer_contract.py
+python -m pytest -q ../shared/tests/cs336_a1_exact/test_model.py
 ```
 
-This is a small Week 1 training check, not the final full-data tokenizer run. It should write:
-- `runs/student_pipeline/smoke/tokenizer/tokenizer.json`
-- `runs/student_pipeline/smoke/tokenizer/tokenizer_manifest.json`
-
-The full release dataset/config will be specified separately. The important Week 1 point is that your tokenizer implementation can both pass correctness tests and produce a saved tokenizer artifact.
-
-## Week 2: Attention, Transformer LM, And Training Utilities
-
-Implement causal self-attention, the full Transformer language model, generation, and training utilities. Generation includes greedy decoding, temperature sampling, top-k sampling, top-p sampling, and `<|endoftext|>` stopping.
-
-Files to edit:
-- `release/minillm/model/attention.py`
-- `release/minillm/model/transformer.py`
-- `release/minillm/model/generation.py`
-- `release/minillm/data/pretrain_dataset.py`
-- `release/minillm/train/optim.py`
-- `release/minillm/train/schedules.py`
-- `release/minillm/train/checkpoint.py`
-
-Tests to pass:
+Training utility tests:
 
 ```bash
-cd release
-python -m pytest -q ../shared/tests/test_model.py ../shared/tests/test_generation.py
-python -m pytest -q ../shared/tests/test_optimizer.py ../shared/tests/test_checkpoint.py ../shared/tests/test_train_state.py
-python -m pytest -q ../shared/tests/test_cs336_transformer_contract.py
-python -m pytest -q ../shared/tests/test_cs336_training_utils_contract.py ../shared/tests/test_cs336_checkpoint_contract.py
-python -m pytest -q ../shared/tests/cs336_a1_exact/test_model.py
-python -m pytest -q ../shared/tests/cs336_a1_exact/test_optimizer.py ../shared/tests/cs336_a1_exact/test_serialization.py
+python -m pytest -q ../shared/tests/test_optimizer.py ../shared/tests/test_train_state.py
+python -m pytest -q ../shared/tests/test_cs336_training_utils_contract.py
+python -m pytest -q ../shared/tests/cs336_a1_exact/test_optimizer.py
 python -m pytest -q ../shared/tests/cs336_a1_exact/test_data.py
 ```
 
-Do not use ready-made PyTorch layers or optimizers listed in the banned dependency section.
+Checkpoint tests:
+
+```bash
+python -m pytest -q ../shared/tests/test_checkpoint.py
+python -m pytest -q ../shared/tests/test_cs336_checkpoint_contract.py
+python -m pytest -q ../shared/tests/cs336_a1_exact/test_serialization.py
+```
+
 
 ## Week 3: Pretraining And Tiny-SFT
 
-Run the main language-modeling workflow.
+Week 3 connects the pieces into the main language-modeling workflow. You will run TinyStories pretraining, generation, Tiny-SFT, and held-out SFT evaluation.
 
-Files to edit:
+### Files To Edit
+
 - `release/minillm/train/pretrain.py`
+  - implement validation-loss evaluation;
+  - implement one pretraining optimizer step.
 - `release/minillm/data/sft_dataset.py`
+  - implement response-only SFT tensors in `make_sft_tensors`.
 
-Required outcomes:
-- train a tokenizer on TinyStories train text;
-- encode TinyStories train/valid text to binary token files with manifests;
-- pretrain your Transformer LM on TinyStories;
-- generate pretraining samples;
-- run SFT from your own pretraining checkpoint;
-- evaluate SFT on the fixed release SFT/eval data.
+Release-data manifest code, SFT training orchestration, SFT eval/report glue, and full pipeline orchestration are provided.
 
+### Tests To Pass
 
-Tests to pass:
+Pretraining/data tests:
 
 ```bash
-cd release
 python -m pytest -q ../shared/tests/test_memmap_data.py ../shared/tests/test_training.py
+```
+
+SFT tests:
+
+```bash
 python -m pytest -q ../shared/tests/test_sft_data.py ../shared/tests/test_sft_loss.py
 python -m pytest -q ../shared/tests/test_sft_release_tasks.py ../shared/tests/test_eval.py
 ```
 
-Pipeline check:
+After tests pass, you should do pretrain and SFT training as described in tutorials.
 
-```bash
-python scripts/verify_student_release_data.py --dataset_dir ../data/full_release
-python scripts/run_student_pipeline.py --mode smoke --device cpu
-```
-
-If you only want to debug the pretraining loop after tokenizer and encoded `.bin` files exist, run:
-
-```bash
-python scripts/train_pretrain.py \
-  --config configs/pretrain_smoke.yaml \
-  --max_steps 4 \
-  --device cpu
-```
-
-Smoke mode should produce:
-- `runs/student_pipeline/smoke/tokenizer/tokenizer.json`
-- `runs/student_pipeline/smoke/tokenizer/pretrain_train.bin`
-- `runs/student_pipeline/smoke/pretrain/checkpoint_last.pt`
-- `runs/student_pipeline/smoke/sft/checkpoint_last.pt`
-- `outputs/smoke/pretrain_samples.md`
-- `outputs/smoke/sft_before_after.md`
-- `outputs/smoke/eval_sft.json`
-- `outputs/smoke/metrics_pretrain.jsonl`
-- `outputs/smoke/metrics_sft.jsonl`
 
 ## Week 4: Final Evaluation And Training Measurement
 
-Finish evaluation, reporting, and the Training Measurement Mini-lab.
+Week 4 is mostly running, inspecting, and reporting. The Training Measurement Mini-lab is provided as a measurement tool, not a systems implementation assignment.
 
-Files to edit:
-- usually none in provided infrastructure;
-- your final report files;
-- small fixes in Week 1-3 modules if pipeline evidence exposes bugs.
+### No Files To Edit
 
-Required outcomes:
-- fixed before/after SFT samples;
-- final metrics summary;
-- training loss curves generated from JSONL metrics;
-- optional next-token top-k inspection from a trained checkpoint;
-- held-out SFT eval results;
-- benchmark sanity output from the provided training-measurement scripts;
-- one short report explaining model behavior, limitations, and benchmark results.
 
-Students run and interpret the Training Measurement Mini-lab. You are not expected to implement systems optimizations.
+### Final Pipeline And Reports
 
-The final pipeline and report-generation scripts are provided infrastructure. You may inspect them to understand the required artifacts, but they are not a main implementation target.
+Run the full student pipeline, inspect the generated artifacts, and complete the Training Measurement Mini-lab. The detailed Week 4 commands and output files are in [Training Measurement Mini-lab.md](./Training%20Measurement%20Mini-lab.md) and [training_measurement_report.md](../reports/templates/training_measurement_report.md).
 
-Tests to pass:
-
-```bash
-cd release
-python -m pytest -q ../shared/tests/test_systems_smoke.py ../shared/tests/test_systems_analysis.py
-python -m pytest -q ../shared/tests
-```
-
-Run the following command to get some artifacts for your system report and your training curves:
-
-```bash
-python scripts/run_student_pipeline.py --mode student --device cuda
-python scripts/plot_training_curves.py
-```
-
-To inspect next-token probabilities from a trained checkpoint, run:
-
-```bash
-python scripts/inspect_next_token.py \
-  --ckpt runs/student_pipeline/student/pretrain/checkpoint_last.pt \
-  --prompt "Once upon a time" \
-  --top_k 8 \
-  --steps 20 \
-  --mode greedy
-```
-
-Use `--mode choose` if you want to pick one of the displayed top-k tokens at each step. This script is provided infrastructure; it relies on your tokenizer, model forward pass, and checkpoint.
-
-If CUDA is unavailable, use `--device mps` on Apple Silicon or `--device cpu` elsewhere. MPS runs use fp32 for this project; clearly state that CUDA mixed-precision and CUDA memory results were skipped.
-
-The full pipeline writes the main artifacts under `outputs/release_candidate/`, including:
-- `run_summary.md`
-- `pipeline_run_report.md`
-- `metrics_summary.json`
-- `training_curves.svg`
-- `pretrain_samples.md`
-- `sft_before_after.md`
-- `eval_sft.json`
-- `benchmark_sanity.csv`
-- `benchmark_sanity.md`
-- `run_artifacts_manifest.json`
-
-For the final Training Measurement Mini-lab table, also run:
-
-```bash
-python scripts/benchmark_sweep.py \
-  --config configs/pretrain_student.yaml \
-  --seq_lens 32,128,256 \
-  --batch_sizes 1,2 \
-  --attentions naive,sdpa \
-  --precisions fp32,bf16 \
-  --device cuda \
-  --warmup 2 \
-  --steps 5 \
-  --csv outputs/final_systems.csv \
-  --md outputs/final_systems.md
-```
-
-Use `outputs/final_systems.csv`, `outputs/final_systems.md`, and `../reports/templates/training_measurement_report.md` to answer the six Training Measurement questions. On MPS, run the standalone sweep with `--device mps --precisions fp32`.
 
 ## Grading Policy
 
@@ -211,47 +146,52 @@ Use `outputs/final_systems.csv`, `outputs/final_systems.md`, and `../reports/tem
 - pretraining run + generation samples: 15 pts
 - tiny-SFT demo + held-out eval: 15 pts
 - training measurement mini-lab report: 5 pts
-- Bonus (each): 5 pts
+- Bonus: 5 pts each
 
-Failed tests will incur a proportional deduction based on their share of the total test suite.
-Each bonus category is worth 5 pts. Points do not stack within the same category.
+Failed tests will incur a proportional deduction based on their share of the total test suite. Points do not stack within the same bonus category.
 
-## BONUS Options
+## Bonus Options
 
-You may choose one of the bonus options listed below.
-If you have any other ideas for a bonus, feel free to discuss them with the TAs.
-- try another SFT task
-- try another model architecture (For example, modifying the Transformer block or implementing an RNN to evaluate and compare their performance.)
-- try another set of hyperparameters
+You may choose one bonus option, or discuss a different option with the TAs (encouraged!):
 
-## Late Policy
-
-Follow the course late-submission policy announced by the teaching staff.
+- Implement an O(nlogn) algorithm for applying merges in tokenizer decoder;
+- try another SFT task;
+- try another model architecture;
+- try another set of hyperparameters.
 
 ## Allowed Dependencies
 
 Allow:
-- Python
-- PyTorch tensor/autograd
-- `torch.nn.Parameter`
-- `torch.nn` container classes such as `Module`, `ModuleList`, `Sequential`
-- `torch.optim.Optimizer` base class
-- PyTorch utilities outside `torch.nn`, `torch.nn.functional`, and `torch.optim`
-- `numpy`
-- `regex`
-- `tqdm`, `yaml`, basic utilities
-- `tiktoken` only inside tests
+
+- Python;
+- PyTorch tensor/autograd;
+- `torch.nn.Parameter`;
+- `torch.nn` container classes such as `Module`, `ModuleList`, `Sequential`;
+- `torch.optim.Optimizer` base class;
+- PyTorch utilities outside `torch.nn`, `torch.nn.functional`, and `torch.optim`;
+- `numpy`;
+- `regex`;
+- `tqdm`, `yaml`, basic utilities;
+- `tiktoken` only inside tests.
 
 Banned:
-- Layers in `torch.nn`, such as `Linear`, `Embedding`, `LayerNorm`, `Transformer`
-- Functions in `torch.nn.functional`, such as `linear`, `embedding`, `scaled_dot_product_attention`
-- Optimizers in `torch.optim`, such as `AdamW`
+
+- layers in `torch.nn`, such as `Linear`, `Embedding`, `LayerNorm`, `Transformer`;
+- functions in `torch.nn.functional`, such as `linear`, `embedding`, `scaled_dot_product_attention`;
+- optimizers in `torch.optim`, such as `AdamW`;
+- Hugging Face Trainer, `transformers.AutoModel`, TRL, accelerate, Triton, DDP, FSDP, ZeRO, GRPO/RL.
 
 ## Submission Artifacts
 
 Your final submission should include:
+
 - your completed code;
-- a short report of your pretraining and SFT result, see [model_report.md](../reports/templates/model_report.md) for reference;
-- a short report of the training measurement mini-lab, see [training_measurement_report.md](../reports/templates/training_measurement_report.md) for reference.
+- a short model report;
+- a short Training Measurement Mini-lab report.
 
 Compress the three artifacts into a `.zip` file for submission.
+
+## Report Requirements
+
+The report format is flexible. You do not have to follow a fixed template, but every important claim should point to an artifact path, metric, sample, or command output.
+Refer to [model_report.md](../reports/templates/model_report.md) and [training_measurment_report.md](../reports/templates/training_measurement_report.md) for required content in your report.

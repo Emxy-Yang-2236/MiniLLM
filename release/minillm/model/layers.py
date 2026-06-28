@@ -18,7 +18,7 @@ class Linear(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply the linear transformation to `x`."""
-        raise NotImplementedError
+        raise NotImplementedError("Week 1 TODO: implement Linear.forward")
 
 
 class Embedding(nn.Module):
@@ -35,7 +35,7 @@ class Embedding(nn.Module):
 
     def forward(self, token_ids: torch.Tensor) -> torch.Tensor:
         """Look up embedding vectors for `token_ids`."""
-        raise NotImplementedError
+        raise NotImplementedError("Week 1 TODO: implement Embedding.forward")
 
 
 class RMSNorm(nn.Module):
@@ -71,7 +71,7 @@ class SwiGLU(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply the position-wise SwiGLU feed-forward network."""
-        raise NotImplementedError
+        raise NotImplementedError("Week 1 TODO: implement SwiGLU.forward")
 
 
 class RotaryPositionalEmbedding(nn.Module):
@@ -87,7 +87,7 @@ class RotaryPositionalEmbedding(nn.Module):
 
     def forward(self, x: torch.Tensor, token_positions: torch.Tensor) -> torch.Tensor:
         """Apply RoPE to `x` at the provided `token_positions`."""
-        raise NotImplementedError
+        raise NotImplementedError("Week 1 TODO: implement RoPE forward pass")
 
 
 def softmax(x: torch.Tensor, dim: int = -1) -> torch.Tensor:

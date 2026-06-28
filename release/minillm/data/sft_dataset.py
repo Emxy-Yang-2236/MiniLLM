@@ -55,8 +55,8 @@ def make_sft_tensors(row: dict, tokenizer, seq_len: int) -> dict:
     `input_ids = seq[:-1]`, `labels = seq[1:]`.
 
     The important SFT rule is response-only loss:
-    labels that correspond to prompt tokens must be `-100`, and labels that
-    correspond to response tokens should keep their token ids. Pad `input_ids`
+    labels that predict prompt tokens must be `-100`, and labels that
+    predict response tokens should keep their token ids. Pad `input_ids`
     to `seq_len` with `tokenizer_padding_id(tokenizer)`, pad labels with
     `-100`, and set attention_mask to 1 for real tokens and 0 for padding.
     """

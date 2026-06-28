@@ -8,7 +8,7 @@ class AdamW(torch.optim.Optimizer):
         raise NotImplementedError("Week 2 TODO: implement AdamW using torch.optim.Optimizer base class")
 
     def step(self, closure=None):
-        raise NotImplementedError
+        raise NotImplementedError("Week 2 TODO: implement AdamW.step")
 
 
 def clip_grad_norm_(parameters, max_norm: float, eps: float = 1e-6) -> torch.Tensor:

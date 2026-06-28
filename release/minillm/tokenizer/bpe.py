@@ -138,7 +138,7 @@ class ByteBPETokenizer:
         return {tok: token_to_id[tok.encode("utf-8")] for tok in self.special_tokens if tok.encode("utf-8") in token_to_id}
 
     # ------------------------------------------------------------------
-    # Student TODO Part 2: encoding and decoding.
+    # Week 1 TODO: tokenizer runtime (encoding and decoding).
     # ------------------------------------------------------------------
 
     def encode(self, text: str, add_eos: bool = False) -> list[int]:
@@ -154,11 +154,11 @@ class ByteBPETokenizer:
         If `add_eos=True`, append the real `<|endoftext|>` id. Do not invent a
         separate EOS token.
         """
-        raise NotImplementedError
+        raise NotImplementedError("Week 1 TODO: implement ByteBPETokenizer.encode")
 
     def encode_iterable(self, texts: Iterable[str]) -> Iterator[int]:
         """Yield token ids from chunks without joining the full input string."""
-        raise NotImplementedError
+        raise NotImplementedError("Week 1 TODO: implement ByteBPETokenizer.encode_iterable")
 
     def batch_encode(self, texts: list[str], add_eos: bool = False) -> list[list[int]]:
         return [self.encode(text, add_eos=add_eos) for text in texts]
@@ -170,7 +170,7 @@ class ByteBPETokenizer:
         sequences turn into the Unicode replacement character instead of
         raising an exception.
         """
-        raise NotImplementedError
+        raise NotImplementedError("Week 1 TODO: implement ByteBPETokenizer.decode")
 
     def batch_decode(self, batch_ids: list[list[int]], skip_special: bool = False) -> list[str]:
         return [self.decode(ids, skip_special=skip_special) for ids in batch_ids]
@@ -287,7 +287,7 @@ def tokenizer_manifest_path(path: str | Path) -> Path:
 
 
 # ----------------------------------------------------------------------
-# Student TODO Part 1: BPE training entrypoints.
+# Week 1 TODO: BPE training entrypoints.
 # ----------------------------------------------------------------------
 
 
@@ -297,7 +297,7 @@ def pretokenize(text: str, pretokenizer: str = DEFAULT_PRETOKENIZER) -> list[str
     Official runs use `gpt2_like`, implemented with the third-party `regex`
     package and `GPT2_LIKE_PATTERN`.
     """
-    raise NotImplementedError
+    raise NotImplementedError("Week 1 TODO: implement GPT-2-like pretokenization")
 
 
 def train_bpe(
@@ -319,7 +319,7 @@ def train_bpe(
       `tie_break="max"`;
     - return a `ByteBPETokenizer`.
     """
-    raise NotImplementedError
+    raise NotImplementedError("Week 1 TODO: implement byte-level BPE training")
 
 
 def train_bpe_from_file(
@@ -343,4 +343,4 @@ def train_bpe_from_file(
     release scripts and reference implementation. A correct Week 1 solution may
     ignore them and run serially.
     """
-    raise NotImplementedError
+    raise NotImplementedError("Week 1 TODO: train BPE from file and save tokenizer artifacts")

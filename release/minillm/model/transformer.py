@@ -39,7 +39,7 @@ class TransformerBlock(nn.Module):
         Returns:
             Tensor with the same shape `(batch_size, seq_len, d_model)`.
         """
-        raise NotImplementedError
+        raise NotImplementedError("Week 2 TODO: implement TransformerBlock.forward")
 
 
 class TransformerLM(nn.Module):
@@ -71,7 +71,7 @@ class TransformerLM(nn.Module):
 
     def forward(self, input_ids: torch.Tensor, labels: torch.Tensor | None = None) -> dict[str, torch.Tensor]:
         """Return logits with shape `(batch_size, seq_len, vocab_size)` and optional loss."""
-        raise NotImplementedError
+        raise NotImplementedError("Week 2 TODO: implement TransformerLM.forward")
 
 
 def count_parameters(model: nn.Module, trainable_only: bool = True) -> int:

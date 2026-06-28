@@ -469,7 +469,7 @@ def _write_artifact_reports(output_dir: Path, summary: dict, pretrain_samples: l
         f"- rows: `{len(benchmark_rows)}`",
         f"- precisions: `{sorted({row.get('precision') for row in benchmark_rows})}`",
         f"- sanity benchmark csv: `{output_dir / 'benchmark_sanity.csv'}`",
-        "- This sanity benchmark only proves that the measurement path runs. For the final report, run `scripts/benchmark_sweep.py` and answer `docs/training_measurement_questions.md`.",
+        "- This sanity benchmark only proves that the measurement path runs. For the final report, run `scripts/benchmark_sweep.py` and answer `docs/Training Measurement Mini-lab.md`.",
         "",
         "| backend | dtype | batch | seq_len | full_step_mean_sec | full_step_median_sec | full_step_p90_sec | tokens/sec | peak_memory |",
         "|---|---|---:|---:|---:|---:|---:|---:|---:|",

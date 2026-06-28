@@ -1,1 +1,1 @@
-"""Student package for the Tiny LLM assignment."""
+"""Student package for the MiniLLM assignment."""

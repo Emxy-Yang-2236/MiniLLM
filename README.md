@@ -10,7 +10,7 @@ The project is still being refined. If you find issues in the handout, tests, da
 
 The project starts with a byte-level BPE tokenizer, builds a decoder-only Transformer LM, trains it on TinyStories dataset, and then uses a tiny supervised fine-tuning stage to show a behavior change.
 
-The expected final result is a compact but complete language-modeling pipeline: data, tokenizer, model, training loop, checkpointing, generation, SFT, evaluation, and a light training-performance benchmark.
+The expected final result is a compact but complete language-modeling pipeline: data, tokenizer, model, training loop, checkpointing, generation, SFT, evaluation, and the Training Measurement Mini-lab.
 
 ```mermaid
 flowchart LR
@@ -20,7 +20,7 @@ flowchart LR
   D --> E[generate pretraining samples]
   D --> F[tiny-SFT]
   F --> G[before/after demo]
-  D --> H[light benchmark]
+  D --> H[Training Measurement Mini-lab]
   G --> I[final report]
   H --> I
 ```
@@ -41,7 +41,7 @@ By the end of the project, you will understand:
 - **week1**: Build a byte-level BPE tokenizer with GPT2-like pretokenization and the basic neural-network layers.
 - **week2**: Build causal attention, the decoder-only Transformer LM, optimizer, schedule, gradient clipping, and checkpointing. (After completing this week's assignment, you are encouraged to explore top-k token generation with the built-in utilities.)
 - **week3**: Pretrain your LM on TinyStories, generate samples, and run supervised fine-tuning (SFT).
-- **week4**: Evaluate the SFT results, prepare before/after SFT demos, run a light performance benchmark, and write the final report.
+- **week4**: Evaluate the SFT results, prepare before/after SFT demos, run the Training Measurement Mini-lab, and write the final report.
 
 > Workload?
 
