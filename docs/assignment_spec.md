@@ -86,8 +86,6 @@ Required outcomes:
 - evaluate SFT on the fixed release SFT/eval data.
 
 
-SFT is a template-conditioned behavior demo. It should show short story-template following and single-label classification. It is not meant to prove arithmetic reasoning or general assistant behavior.
-
 Tests to pass:
 
 ```bash
