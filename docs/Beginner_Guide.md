@@ -28,11 +28,12 @@ This repository is organized around two parallel implementations:
 - `data/` contains TinyStories raw files and the fixed MiniLLM SFT/eval release data. Do not edit dataset files by hand.
 - `docs/` contains the assignment specification and tutorial notes.
 
-Most commands are run from inside `release/`. For example, public tests are usually run as:
+Most commands are run from inside `release/`. Run the tests for the week you are working on; the full shared test suite is expected to pass only after the
+required implementation is complete.
 
 ```bash
 cd release
-python -m pytest -q ../shared/tests
+python -m pytest -q ../shared/tests/test_tokenizer*.py
 ```
 
 The main generated directories are `release/runs/` and `release/outputs/`. They are created by training, evaluation, generation, and benchmark scripts. They are not source code.
@@ -60,11 +61,11 @@ conda activate cs336-minillm
 
 On Apple Silicon, keep the CPU environment and run with `--device mps` to force MPS, or `--device auto` to choose CUDA, then MPS, then CPU. MPS runs should use fp32; CUDA-only mixed-precision and CUDA memory results should be marked skipped.
 
-Then run commands from `release/`:
+Then run the relevant weekly tests from `release/`. For example, the first tokenizer tests are:
 
 ```bash
 cd release
-python -m pytest -q ../shared/tests
+python -m pytest -q ../shared/tests/test_tokenizer*.py
 ```
 
 The provided plotting script uses only the Python standard library, so no extra plotting package is required.

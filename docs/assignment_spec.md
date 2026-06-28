@@ -138,6 +138,8 @@ Week 4 is mostly running, inspecting, and reporting. The Training Measurement Mi
 
 Run the full student pipeline, inspect the generated artifacts, and complete the Training Measurement Mini-lab. The detailed Week 4 commands and output files are in [Training Measurement Mini-lab.md](./Training%20Measurement%20Mini-lab.md) and [training_measurement_report.md](../reports/templates/training_measurement_report.md).
 
+The pipeline also writes an automatic `PASS` / `WEAK PASS` / `FAIL` sanity verdict in `outputs/release_candidate/metrics_summary.json`. Treat it as a quick check of losses, SFT metrics, and benchmark rows; your report should still explain the actual artifacts and examples.
+
 
 ## Grading Policy
 
@@ -182,6 +184,12 @@ Banned:
 - Hugging Face Trainer, `transformers.AutoModel`, TRL, accelerate, Triton, DDP, FSDP, ZeRO, GRPO/RL.
 
 ## Submission Artifacts
+
+Before submission, after all required implementation is complete, run the full public test suite from `release/`:
+
+```bash
+python -m pytest -q ../shared/tests
+```
 
 Your final submission should include:
 

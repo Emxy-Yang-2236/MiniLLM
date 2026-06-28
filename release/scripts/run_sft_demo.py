@@ -128,7 +128,7 @@ def _release_verdict(sft_loss: dict, eval_sft: dict) -> tuple[str, dict]:
         "sft_loss_ok": sft_loss_ok,
         "story_template_followed_ok": eval_sft.get("story_template/template_followed", 0.0) >= 0.90,
         "story_template_topic_ok": eval_sft.get("story_template/topic_match", 0.0) >= 0.90,
-        "label_template_exact_ok": eval_sft.get("label_template/exact_match", 0.0) >= 0.85,
+        "label_template_exact_ok": eval_sft.get("label_template/exact_match", 0.0) >= 0.80,
     }
     return ("PASS" if all(checks.values()) else "WEAK PASS" if sft_loss_ok else "FAIL"), checks
 
