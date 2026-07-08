@@ -1,0 +1,19 @@
+{
+  "tokenizer_path": "runs/tokenizer_tinystories_10k/tokenizer.json",
+  "tokenizer_sha256": "e4d4a406dda1aa8e58f31be83a88d32efd36f92ce3cc114af7b936b7b1750652",
+  "tokenizer_version": 2,
+  "pretokenizer": "gpt2_like",
+  "regex_pattern": "'(?:[sdmt]|ll|ve|re)| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+",
+  "vocab_size": 10000,
+  "num_merges": 9743,
+  "special_tokens": [
+    "<|endoftext|>"
+  ],
+  "tie_break": "max",
+  "training_source_path": "../data/raw/tinystories/TinyStoriesV2-GPT4-train.txt",
+  "training_source_sha256": "6418d412de72888f52b5142c761ac21a582f7d1166f0bfbdb5f03ccfdec90443",
+  "training_bytes": 2227753162,
+  "training_bytes_read": 2227753162,
+  "elapsed_sec": 193.578311421,
+  "created_at": "2026-07-08T13:57:56Z"
+}

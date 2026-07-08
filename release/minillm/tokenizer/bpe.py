@@ -19,6 +19,9 @@ from pathlib import Path
 from typing import Iterable, Iterator
 import regex as re
 
+from concurrent.futures import ProcessPoolExecutor
+from collections import Counter
+
 # Official MiniLLM tokenizer settings. Do not add special tokens unless you also change the training/generation pipeline.
 SPECIAL_TOKENS = ["<|endoftext|>"]
 GPT2_LIKE_PATTERN = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
@@ -27,6 +30,12 @@ DEFAULT_PRETOKENIZER = "gpt2_like"
 DEFAULT_TIE_BREAK = "max"
 SIMPLE_PATTERN = r"\S+|\s+"
 
+# determine whether launch muti-process mode for training (pretok)
+BPE_TRAIN_NUM_WORKERS = 0
+BPE_TRAIN_NUM_CHUNKS = 1
+
+# byte list for bpe training step and decrease mem_cost of byte obj
+BYTE_TOKENS = tuple(bytes([i]) for i in range(256))
 
 def _bytes_to_json(value: bytes) -> list[int]:
     return list(value)
@@ -231,7 +240,7 @@ class ByteBPETokenizer:
             #step 3
             piece_bytes = piece.encode("utf-8")
             byte_converted = [
-                bytes([byte_value])
+                BYTE_TOKENS[byte_value]
                 for byte_value in piece_bytes
             ]
 
@@ -484,6 +493,89 @@ def pattern_match_except(text: str,
 
     return split_str
 
+# do the "remove special tokens and pretokenize" job on split text
+def pre_tok_single(
+        text: str,
+        special_tokens: list[str] | None,
+        pretokenizer: str = DEFAULT_PRETOKENIZER
+) -> Counter[str] :
+    counter = Counter()
+    split_str: list[str] = []
+
+    if not special_tokens:
+        split_str = [text]
+    else:
+        split_str = split_special_except(special_tokens, text)
+
+    for piece in split_str:
+        for pretok in pretokenize(piece, pretokenizer):
+            counter[pretok] += 1
+
+    return counter
+
+# multi-process worker
+def worker(args) -> Counter[str] :
+    text, special_tokens, pretokenizer = args
+    return pre_tok_single(text, special_tokens, pretokenizer)
+
+# process chunks
+def parallel_chunk_counter(
+    chunks: list[str],
+    special_tokens: list[str],
+    pretokenizer: str,
+    num_workers: int,
+) -> Counter[str] :
+    tasks = [
+        (chunk, special_tokens, pretokenizer)
+        for chunk in chunks
+    ]
+
+    total_chunk_counter = Counter()
+
+    with ProcessPoolExecutor(max_workers= num_workers) as executor :
+        for partial_chunk_counter in executor.map(worker, tasks):
+            total_chunk_counter.update(partial_chunk_counter)
+
+    return total_chunk_counter
+
+# split raw text into chunks
+def split_text_into_chunks(
+    text: str | list[str],
+    special_tokens: list[str],
+    num_chunks: int,
+) -> list[str]:
+    if num_chunks <= 1 or not special_tokens :
+        return [text] if isinstance(text, str) else text
+
+    delimiter = special_tokens[0]
+
+    docs: list[str] = []
+    if isinstance(text, str) :
+        docs = text.split(delimiter)
+    else:
+        for piece in text:
+            docs.extend(piece.split(delimiter))
+
+    target_size = max(1, len(text) // num_chunks)
+
+    chunks = []
+    current_docs = []
+    current_size = 0
+
+    for doc in docs:
+        current_docs.append(doc)
+        current_size += len(doc) + len(delimiter)
+
+        if current_size >= target_size:
+            chunks.append(delimiter.join(current_docs))
+            current_docs = []
+            current_size = 0
+
+    if current_docs:
+        chunks.append(delimiter.join(current_docs))
+
+    return [chunk for chunk in chunks if chunk]
+
 
 def train_bpe(
     texts: list[str] | str,
@@ -492,6 +584,7 @@ def train_bpe(
     special_tokens: list[str] | None = None,
     pretokenizer: str = DEFAULT_PRETOKENIZER,
     tie_break: str = DEFAULT_TIE_BREAK,
+    input_bytes_override: int | None = None,
 ) -> ByteBPETokenizer:
     """Train byte-level BPE from in-memory text.
 
@@ -509,7 +602,9 @@ def train_bpe(
     start_time = time.perf_counter()
     input_texts : int = 1
     input_bytes : int = 0
-    if isinstance(texts, str):
+    if input_bytes_override is not None:
+        input_bytes = input_bytes_override
+    elif isinstance(texts, str):
         input_bytes = len(texts.encode("utf-8"))
     else:
         input_texts = len(texts)
@@ -525,33 +620,40 @@ def train_bpe(
     split_str: list[str] = []
 
     # remove special tokens and pretokenize
-    if not special_tokens:
-        if isinstance(texts, str):
-            split_str = [texts]
-        else:
-            split_str = texts
-    else:
-        if isinstance(texts, str):
-            split_str = split_special_except(special_tokens, texts)
+    # simultaneously turn ["low" "low" "lower"] into {("low": 2), ("lower": 1)}
+    chunk_counter = Counter()
+    num_workers = BPE_TRAIN_NUM_WORKERS
+    num_chunks = BPE_TRAIN_NUM_CHUNKS
+
+    if num_workers <= 1 :
+        if isinstance(texts, str) :
+            chunk_counter = pre_tok_single(texts, special_tokens, pretokenizer)
         else:
             for text in texts:
-                split_str.extend(split_special_except(special_tokens, text))
+                chunk_counter.update(pre_tok_single(text, special_tokens, pretokenizer))
+    else:
+        chunks = split_text_into_chunks(texts, special_tokens, num_chunks)
+        chunk_counter = parallel_chunk_counter(chunks, special_tokens, pretokenizer, num_workers)
 
-    pre_tokenized: list[str] = []
-    for text in split_str:
-        pre_tokenized.extend(pretokenize(text, pretokenizer))
+    # split chunk_counter_bytes(deleted) into two list to maintain synchronization during update
+    words: list[tuple[bytes, ...]] = []
+    frequencies: list[int] = []
 
-    # turn ["low" "low" "lower"] into {("low": 2), ("lower": 1)}
-    chunk_counter: dict[str, int] = {}
-    for chunks in pre_tokenized:
-        chunk_counter[chunks] = chunk_counter.get(chunks, 0) + 1
+    # count byte pair frequency
+    pair_count: dict[tuple[bytes, bytes], int] = {}
 
+    # save the positon where each pair appears (in which word)
+    pair_to_word_ids: dict[tuple[bytes, bytes], set[int]] = {}
+
+    '''
     # turn {("low": 2), ("lower": 1)} into {((b"l",b"o",b"w"): 2), ((...): 1)}
     chunk_counter_bytes: dict[tuple[bytes,...], int] = {}
     for chunks, count in chunk_counter.items():
         chunk_bytes = chunks.encode("utf-8")
         byte_tuple = tuple(bytes([byte_value]) for byte_value in chunk_bytes)
         chunk_counter_bytes[byte_tuple] = count
+
+    del chunk_counter   # free memory
 
     # get initial pair count
     pair_count: dict[tuple[bytes,bytes], int] = {}
@@ -569,14 +671,31 @@ def train_bpe(
         for word in words
     ]
 
-    # find the positon where each pair appears (in which word)
-    pair_to_word_ids : dict[tuple[bytes, bytes], set[int]] = {}
+    del chunk_counter_bytes    # free memory
 
     for word_id, word in enumerate(words):
         word_pairs = single_pair_count(word)
 
         for pair in word_pairs:
             pair_to_word_ids.setdefault(pair, set()).add(word_id)
+    '''
+
+    for word_id, (chunk, count) in enumerate(chunk_counter.items()):
+        chunk_bytes = chunk.encode("utf-8")
+
+        # turn ("low", "lower") into (b"l",b"o",b"w"), (...)} each in 0~255
+        word = tuple(BYTE_TOKENS[byte_value] for byte_value in chunk_bytes)
+
+        words.append(word)
+        frequencies.append(count)
+
+        word_pair_count = single_pair_count(word)
+
+        for pair, pair_occurrences in word_pair_count.items():
+            pair_count[pair] = pair_count.get(pair, 0) + pair_occurrences * count
+            pair_to_word_ids.setdefault(pair, set()).add(word_id)
+
+    del chunk_counter
 
     # create tokenizer
     tokenizer = ByteBPETokenizer.initial(
@@ -685,8 +804,6 @@ def split_special(
         special_tokens: list[str],
         text: str,
 ) -> list[str]:
-    split_str: list[str] = []
-
     ordered_special_tokens = sorted(
         special_tokens,
         key=len,
@@ -772,6 +889,8 @@ def train_bpe_from_file(
         errors="ignore",
     )
 
+    del raw_bytes  # free memory
+
     tokenizer = train_bpe(
         text,
         vocab_size=vocab_size,
@@ -779,6 +898,7 @@ def train_bpe_from_file(
         special_tokens=special_tokens,
         pretokenizer=pretokenizer,
         tie_break=tie_break,
+        input_bytes_override=training_bytes_read,
     )
 
     tokenizer.stats.source_path = str(input_path)
