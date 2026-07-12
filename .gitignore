@@ -9,3 +9,4 @@ Dockerfile
 .dockerignore
 data/
 .idea/
+release/runs/

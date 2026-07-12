@@ -3,6 +3,9 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from einops import einsum
+from einops import rearrange, reduce
+from .layers import softmax, Linear, RotaryPositionalEmbedding
 
 
 def scaled_dot_product_attention(
@@ -17,7 +20,30 @@ def scaled_dot_product_attention(
     `V (..., n_keys, d_v) -> (..., n_queries, d_v)`.
     If `mask` is provided, `False` entries are blocked before softmax.
     """
-    raise NotImplementedError("Week 2 TODO: implement scaled dot-product attention")
+
+    # calculate Q * K_T
+    scores = einsum(
+        Q, K,
+        "... query d_k, ... key d_k -> ... query key",
+    )
+    d_k = Q.shape[-1]
+    scaled_scores = scores / (d_k ** 0.5)
+
+    # apply mask matrix : masked_fill pos where mask[pos] = False to -inf
+    if mask is not None:
+        scaled_scores = scaled_scores.masked_fill(
+            ~mask,
+            float("-inf"),
+        )
+
+    attention_weights = softmax(
+        scaled_scores,
+        dim=-1,
+    )
+
+    # (d_queries, d_keys) @ (d_keys, d_v)
+    return attention_weights @ V
+
 
 
 def causal_sdpa_attention(
@@ -49,8 +75,87 @@ class MultiHeadSelfAttention(nn.Module):
     ):
         """Use `head_dim = d_model // num_heads`; `backend="sdpa"` is provided."""
         super().__init__()
-        raise NotImplementedError("Week 2 TODO: implement causal multi-head self-attention")
+
+        # save basic model config
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.head_dim = d_model // num_heads
+        self.backend = backend
+        self.use_rope = use_rope
+
+        # init attention matrix
+        self.q_proj = Linear(d_model, d_model)
+        self.k_proj = Linear(d_model, d_model)
+        self.v_proj = Linear(d_model, d_model)
+        self.output_proj = Linear(d_model, d_model)
+
+        # handle RoPE use
+        if use_rope:
+            self.rope = RotaryPositionalEmbedding(
+                theta=theta,
+                d_k=self.head_dim,
+                max_seq_len=max_seq_len,
+            )
+        else:
+            self.rope = None
+
 
     def forward(self, x: torch.Tensor, token_positions: torch.Tensor | None = None) -> torch.Tensor:
         """Apply causal MHA. If `token_positions` is omitted, use `0..seq_len-1`."""
-        raise NotImplementedError("Week 2 TODO: implement causal attention; SDPA helper is provided")
+
+        # apply q,k,v
+        q = self.q_proj(x)
+        k = self.k_proj(x)
+        v = self.v_proj(x)
+
+        # rearrange
+        q = rearrange(
+            q,
+            "batch seq (num_heads d_head) -> batch num_heads seq d_head",
+            num_heads = self.num_heads,
+        )
+        k = rearrange(
+            k,
+            "batch seq (num_heads d_head) -> batch num_heads seq d_head",
+            num_heads=self.num_heads,
+        )
+        v = rearrange(
+            v,
+            "batch seq (num_heads d_head) -> batch num_heads seq d_head",
+            num_heads=self.num_heads,
+        )
+
+        # apply RoPE
+        if token_positions is None:
+            token_positions = torch.arange(
+                x.shape[-2],     # seq_length
+                device=x.device,
+            ) # (0,...,seq_length-1) if not provided
+
+        if self.rope is not None:
+            q = self.rope(q, token_positions)
+            k = self.rope(k, token_positions)
+
+        # causal mask
+        seq_len = x.shape[-2]
+        causal_mask = torch.tril(
+            torch.ones(
+                seq_len,
+                seq_len,
+                device=x.device,
+                dtype=torch.bool,
+            )
+        )
+
+        # apply attention
+        if self.backend == "naive":
+            attention_output = scaled_dot_product_attention(q,k,v, mask= causal_mask)
+        else:
+            attention_output = causal_sdpa_attention(q,k,v)
+
+        attention_output = rearrange(
+            attention_output,
+            "batch num_heads seq d_head -> batch seq (num_heads d_head)",
+        )
+        
+        return self.output_proj(attention_output)
