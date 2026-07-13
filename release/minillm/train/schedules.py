@@ -1,10 +1,19 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import math
 
 
 def cosine_warmup(step: int, max_steps: int, warmup_steps: int, max_lr: float, min_lr: float = 0.0) -> float:
-    raise NotImplementedError("Week 2 TODO: implement cosine schedule with warmup")
+    # diff stage
+    if step < warmup_steps :
+        return max_lr * (step / warmup_steps)
+    elif step > max_steps :
+        return min_lr
+    else:
+        theta = (step - warmup_steps) * math.pi / (max_steps - warmup_steps)
+        cos_anneal_lr = min_lr + 0.5 * (1 + math.cos(theta)) * (max_lr - min_lr)
+        return cos_anneal_lr
 
 
 @dataclass
