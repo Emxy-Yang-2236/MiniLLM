@@ -9,7 +9,7 @@ You will not know why modern language models work after reading this (actually n
 Recommended public resources will also be included at the end.
 
 A very brief summary:
-> Deep learning trains a parametrized function \($ f_\theta\ $) so that, on examples we care about, its outputs match the desired targets.
+> Deep learning trains a parametrized function \(f_\theta\) so that, on examples we care about, its outputs match the desired targets.
 > Neural networks are useful because, with nonlinear layers and enough capacity, they can represent very complicated functions.
 > And training is the process of searching for good parameters.
 

@@ -1,0 +1,129 @@
+{
+  "name": "minillm_tinystories_full_release_v1",
+  "source": "Full TinyStories V2 GPT-4 train/valid text for pretraining plus fixed assignment-authored SFT/eval JSONL.",
+  "license": "CDLA-Sharing-1.0",
+  "version": 10,
+  "created_at": "2026-06-01T05:58:45Z",
+  "sft_generation": {
+    "script": "minillm.data.release.write_sft_release_data",
+    "seed": 0,
+    "manifest": "sft/manifest.json",
+    "overlap_checks": {
+      "train_valid_prompt_overlap_count": 0,
+      "train_eval_prompt_overlap_count": 0,
+      "train_fixed_prompt_overlap_count": 0,
+      "valid_eval_prompt_overlap_count": 0,
+      "valid_fixed_prompt_overlap_count": 0,
+      "eval_fixed_prompt_overlap_count": 0,
+      "train_valid_id_overlap_count": 0,
+      "train_eval_id_overlap_count": 0,
+      "train_fixed_id_overlap_count": 0,
+      "valid_eval_id_overlap_count": 0,
+      "valid_fixed_id_overlap_count": 0,
+      "eval_fixed_id_overlap_count": 0,
+      "train_valid_label_text_overlap_count": 0,
+      "train_eval_label_text_overlap_count": 0,
+      "train_fixed_label_text_overlap_count": 0,
+      "valid_eval_label_text_overlap_count": 0,
+      "valid_fixed_label_text_overlap_count": 0,
+      "eval_fixed_label_text_overlap_count": 0,
+      "ok": true
+    }
+  },
+  "legacy_byte_budgets_ignored_for_full_release": {
+    "requested_train_bytes": 536870912,
+    "requested_valid_bytes": 33554432,
+    "requested_tokenizer_bytes": 134217728
+  },
+  "tokenizer_training": {
+    "split": "pretrain_train",
+    "note": "Tokenizer training reads this full train file, usually with tokenizer_train_mb set in the tokenizer config to bound BPE training time."
+  },
+  "source_urls": {
+    "tinystories_train": "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-train.txt",
+    "tinystories_valid": "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-valid.txt",
+    "cs336_assignment1_reference": "https://github.com/stanford-cs336/spring2024-assignment1-basics"
+  },
+  "files": [
+    {
+      "path": "../raw/tinystories/TinyStoriesV2-GPT4-train.txt",
+      "split": "pretrain_train",
+      "format": "plain_text",
+      "source": "Full TinyStoriesV2-GPT4 train split",
+      "num_examples": 14548094,
+      "whitespace_tokens": 439223229,
+      "bytes": 2227753162,
+      "sha256": "6418d412de72888f52b5142c761ac21a582f7d1166f0bfbdb5f03ccfdec90443"
+    },
+    {
+      "path": "../raw/tinystories/TinyStoriesV2-GPT4-valid.txt",
+      "split": "pretrain_valid",
+      "format": "plain_text",
+      "source": "Full TinyStoriesV2-GPT4 valid split",
+      "num_examples": 147257,
+      "whitespace_tokens": 4436454,
+      "bytes": 22502601,
+      "sha256": "6874bae9a4c1a4e7edcf0e53b86c17817e9cf881fc75ff2368da457b80c0585d"
+    },
+    {
+      "path": "sft/train.jsonl",
+      "split": "sft_train",
+      "format": "jsonl",
+      "source": "assignment-authored fixed template SFT train set",
+      "num_examples": 6000,
+      "whitespace_tokens": 434940,
+      "bytes": 3340082,
+      "sha256": "0c10585f57ec6651b4680844ff29f472280b06f3fcd3370554ceaa91233cf73a"
+    },
+    {
+      "path": "sft/valid.jsonl",
+      "split": "sft_valid",
+      "format": "jsonl",
+      "source": "assignment-authored fixed template SFT validation set",
+      "num_examples": 1000,
+      "whitespace_tokens": 74104,
+      "bytes": 559046,
+      "sha256": "b3b236b5390057bdf0e1b2aa0b1f41299ebf74a5eeabe3188df6b875391886d8"
+    },
+    {
+      "path": "sft/eval.jsonl",
+      "split": "sft_eval",
+      "format": "jsonl",
+      "source": "held-out template SFT eval set",
+      "num_examples": 600,
+      "whitespace_tokens": 40130,
+      "bytes": 321103,
+      "sha256": "45ae0d3dc210b624fd10be6e6eafea089d73d7e209750558af7b8e31f87831f0"
+    },
+    {
+      "path": "sft/fixed_prompts.jsonl",
+      "split": "before_after_prompts",
+      "format": "jsonl",
+      "source": "held-out fixed template SFT before/after prompts",
+      "num_examples": 16,
+      "whitespace_tokens": 870,
+      "bytes": 6611,
+      "sha256": "b5ac610ceab70221aa3b2c3b5c250d23fe12d4b078025256064574cd298e01ed"
+    },
+    {
+      "path": "eval/sft_eval.jsonl",
+      "split": "sft_eval_alias",
+      "format": "jsonl",
+      "source": "alias of sft/eval.jsonl",
+      "num_examples": 600,
+      "whitespace_tokens": 40130,
+      "bytes": 321103,
+      "sha256": "45ae0d3dc210b624fd10be6e6eafea089d73d7e209750558af7b8e31f87831f0"
+    },
+    {
+      "path": "eval/fixed_prompts.jsonl",
+      "split": "before_after_prompts_alias",
+      "format": "jsonl",
+      "source": "alias of sft/fixed_prompts.jsonl",
+      "num_examples": 16,
+      "whitespace_tokens": 870,
+      "bytes": 6611,
+      "sha256": "b5ac610ceab70221aa3b2c3b5c250d23fe12d4b078025256064574cd298e01ed"
+    }
+  ]
+}

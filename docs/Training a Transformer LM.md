@@ -93,7 +93,7 @@ $$
 \theta_{t+1}
 =
 \theta_t
-\ -
+-
 \frac{\alpha}{\sqrt{t+1}}
 \nabla L(\theta_t; B_t).
 \qquad (20)
