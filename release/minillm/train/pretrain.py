@@ -55,7 +55,8 @@ def evaluate_loss(
                 loss_value = float(loss.item())
                 losses.append(loss_value)
 
-    model.train(was_training)
+    if was_training:
+        model.train()
 
     avg_loss = sum(losses) / max(1, len(losses))
     return avg_loss

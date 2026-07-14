@@ -1,6 +1,6 @@
 {
-  "tokenizer_path": "runs/student_pipeline/smoke/tokenizer/tokenizer.json",
-  "tokenizer_sha256": "1d5ed9b0136e0865920f3ae68c190404350e294f9771f1143bedf2492d4cb3a9",
+  "tokenizer_path": "/workspace/release/runs/student_pipeline/smoke/tokenizer/tokenizer.json",
+  "tokenizer_sha256": "d0fa2e8153dda58b0a250c8699a2189faca651a1056feb8a305f4a589fedb8f0",
   "tokenizer_version": 2,
   "pretokenizer": "gpt2_like",
   "regex_pattern": "'(?:[sdmt]|ll|ve|re)| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+",
@@ -10,10 +10,10 @@
     "<|endoftext|>"
   ],
   "tie_break": "max",
-  "training_source_path": "../data/raw/tinystories/TinyStoriesV2-GPT4-train.txt",
+  "training_source_path": "/workspace/data/raw/tinystories/TinyStoriesV2-GPT4-train.txt",
   "training_source_sha256": "6418d412de72888f52b5142c761ac21a582f7d1166f0bfbdb5f03ccfdec90443",
   "training_bytes": 1048576,
   "training_bytes_read": 1048576,
-  "elapsed_sec": 0.10100941600001079,
-  "created_at": "2026-07-08T12:07:15Z"
+  "elapsed_sec": 0.12640724999801023,
+  "created_at": "2026-07-14T16:10:20Z"
 }

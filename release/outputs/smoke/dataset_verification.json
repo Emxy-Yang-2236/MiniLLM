@@ -1,0 +1,136 @@
+{
+  "ok": true,
+  "name": "minillm_tinystories_full_release_v1",
+  "version": 10,
+  "files": [
+    {
+      "path": "../raw/tinystories/TinyStoriesV2-GPT4-train.txt",
+      "ok": true,
+      "expected": {
+        "num_examples": 14548094,
+        "whitespace_tokens": 439223229,
+        "bytes": 2227753162,
+        "sha256": "6418d412de72888f52b5142c761ac21a582f7d1166f0bfbdb5f03ccfdec90443"
+      },
+      "actual": {
+        "num_examples": 14548094,
+        "whitespace_tokens": 439223229,
+        "sha256": "6418d412de72888f52b5142c761ac21a582f7d1166f0bfbdb5f03ccfdec90443",
+        "bytes": 2227753162,
+        "verification_mode": "cached_large_text_stats_size_checked"
+      }
+    },
+    {
+      "path": "../raw/tinystories/TinyStoriesV2-GPT4-valid.txt",
+      "ok": true,
+      "expected": {
+        "num_examples": 147257,
+        "whitespace_tokens": 4436454,
+        "bytes": 22502601,
+        "sha256": "6874bae9a4c1a4e7edcf0e53b86c17817e9cf881fc75ff2368da457b80c0585d"
+      },
+      "actual": {
+        "num_examples": 147257,
+        "whitespace_tokens": 4436454,
+        "bytes": 22502601,
+        "sha256": "6874bae9a4c1a4e7edcf0e53b86c17817e9cf881fc75ff2368da457b80c0585d"
+      }
+    },
+    {
+      "path": "sft/train.jsonl",
+      "ok": true,
+      "expected": {
+        "num_examples": 6000,
+        "whitespace_tokens": 434940,
+        "bytes": 3340082,
+        "sha256": "0c10585f57ec6651b4680844ff29f472280b06f3fcd3370554ceaa91233cf73a"
+      },
+      "actual": {
+        "num_examples": 6000,
+        "whitespace_tokens": 434940,
+        "bytes": 3340082,
+        "sha256": "0c10585f57ec6651b4680844ff29f472280b06f3fcd3370554ceaa91233cf73a"
+      }
+    },
+    {
+      "path": "sft/valid.jsonl",
+      "ok": true,
+      "expected": {
+        "num_examples": 1000,
+        "whitespace_tokens": 74104,
+        "bytes": 559046,
+        "sha256": "b3b236b5390057bdf0e1b2aa0b1f41299ebf74a5eeabe3188df6b875391886d8"
+      },
+      "actual": {
+        "num_examples": 1000,
+        "whitespace_tokens": 74104,
+        "bytes": 559046,
+        "sha256": "b3b236b5390057bdf0e1b2aa0b1f41299ebf74a5eeabe3188df6b875391886d8"
+      }
+    },
+    {
+      "path": "sft/eval.jsonl",
+      "ok": true,
+      "expected": {
+        "num_examples": 600,
+        "whitespace_tokens": 40130,
+        "bytes": 321103,
+        "sha256": "45ae0d3dc210b624fd10be6e6eafea089d73d7e209750558af7b8e31f87831f0"
+      },
+      "actual": {
+        "num_examples": 600,
+        "whitespace_tokens": 40130,
+        "bytes": 321103,
+        "sha256": "45ae0d3dc210b624fd10be6e6eafea089d73d7e209750558af7b8e31f87831f0"
+      }
+    },
+    {
+      "path": "sft/fixed_prompts.jsonl",
+      "ok": true,
+      "expected": {
+        "num_examples": 16,
+        "whitespace_tokens": 870,
+        "bytes": 6611,
+        "sha256": "b5ac610ceab70221aa3b2c3b5c250d23fe12d4b078025256064574cd298e01ed"
+      },
+      "actual": {
+        "num_examples": 16,
+        "whitespace_tokens": 870,
+        "bytes": 6611,
+        "sha256": "b5ac610ceab70221aa3b2c3b5c250d23fe12d4b078025256064574cd298e01ed"
+      }
+    },
+    {
+      "path": "eval/sft_eval.jsonl",
+      "ok": true,
+      "expected": {
+        "num_examples": 600,
+        "whitespace_tokens": 40130,
+        "bytes": 321103,
+        "sha256": "45ae0d3dc210b624fd10be6e6eafea089d73d7e209750558af7b8e31f87831f0"
+      },
+      "actual": {
+        "num_examples": 600,
+        "whitespace_tokens": 40130,
+        "bytes": 321103,
+        "sha256": "45ae0d3dc210b624fd10be6e6eafea089d73d7e209750558af7b8e31f87831f0"
+      }
+    },
+    {
+      "path": "eval/fixed_prompts.jsonl",
+      "ok": true,
+      "expected": {
+        "num_examples": 16,
+        "whitespace_tokens": 870,
+        "bytes": 6611,
+        "sha256": "b5ac610ceab70221aa3b2c3b5c250d23fe12d4b078025256064574cd298e01ed"
+      },
+      "actual": {
+        "num_examples": 16,
+        "whitespace_tokens": 870,
+        "bytes": 6611,
+        "sha256": "b5ac610ceab70221aa3b2c3b5c250d23fe12d4b078025256064574cd298e01ed"
+      }
+    }
+  ]
+}
