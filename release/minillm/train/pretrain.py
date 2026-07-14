@@ -4,6 +4,7 @@ import math
 import time
 from pathlib import Path
 
+import torch
 from torch.utils.data import DataLoader
 
 from minillm.data.pretrain_dataset import PretrainDataset, RandomBlockDataset, encoded_manifest_path, validate_encoded_manifest
@@ -13,25 +14,59 @@ from minillm.model.transformer import TransformerLM, model_summary
 from minillm.tokenizer.bpe import ByteBPETokenizer
 from minillm.train.checkpoint import load_checkpoint, save_checkpoint
 from minillm.train.optim import clip_grad_norm_
+from minillm.train.schedules import WarmupScheduler
 from minillm.train.seed import set_seed
-from minillm.train.state import JsonlLogger, TrainState, apply_lr, create_optimizer, create_scheduler
+from minillm.train.state import JsonlLogger, TrainState, apply_lr, create_optimizer, create_scheduler, autocast_context
 from minillm.utils.device import get_device
 
 
-def evaluate_loss(model, loader, device, max_batches: int = 10, amp: bool = False, amp_dtype: str = "bf16") -> float:
+def evaluate_loss(
+        model: torch.nn.Module,
+        loader: DataLoader,
+        device,
+        max_batches: int = 10,
+        amp: bool = False,
+        amp_dtype: str = "bf16") -> float:
     """Week 3 TODO: compute mean validation loss.
 
     This is the evaluation-side version of the basic training loop:
     switch to eval mode, disable gradients, run up to `max_batches`, and return the average `out["loss"]`.
     """
-    raise NotImplementedError("Week 3 TODO: compute mean validation loss")
+
+    was_training = model.training
+    model.eval()
+    losses = []
+
+    with torch.no_grad():
+        for batch_idx, batch in enumerate(loader):
+            if batch_idx >= max_batches:
+                break
+
+            # move two tenser in batch to device
+            input_ids = batch["input_ids"].to(device)
+            labels = batch["labels"].to(device)
+
+            with autocast_context(device, amp, amp_dtype):
+                # logits and loss
+                out = model(input_ids, labels)
+                loss = out["loss"]
+
+                # initial loss is zero dim tensor
+                loss_value = float(loss.item())
+                losses.append(loss_value)
+
+    model.train(was_training)
+
+    avg_loss = sum(losses) / max(1, len(losses))
+    return avg_loss
+
 
 
 def train_one_step(
-    model,
+    model: torch.nn.Module,
     train_iter,
-    optimizer,
-    scheduler,
+    optimizer: torch.optim.Optimizer,
+    scheduler: WarmupScheduler,
     state: TrainState,
     device,
     *,
@@ -49,7 +84,51 @@ def train_one_step(
     return a metrics row with at least train_loss, lr, grad_norm, step, and
     tokens.
     """
-    raise NotImplementedError("Week 3 TODO: implement one pretraining optimizer step")
+
+    if grad_accum <= 0:
+        raise ValueError("grad_accum must be positive")
+
+    model.train()
+    lr = scheduler.get_lr(state.step)
+    apply_lr(optimizer, lr)
+
+    # clear old grad
+    optimizer.zero_grad(set_to_none=True)
+
+    total_loss = 0.0
+    tokens_this_step = 0    # token processed during this step
+
+    # grad accumulation loop
+    for _ in range(grad_accum):
+        batch = next(train_iter)
+
+        tokens_this_step += batch["input_ids"].numel()
+
+        input_ids = batch["input_ids"].to(device)
+        labels = batch["labels"].to(device)
+
+        with autocast_context(device, amp, amp_dtype):
+            out = model(input_ids, labels)
+            raw_loss = out["loss"]
+            scaled_loss = raw_loss / grad_accum         # linearity of derivatives
+
+        scaled_loss.backward()
+        total_loss += float(scaled_loss.detach().item())
+
+    grad_norm = clip_grad_norm_(model.parameters(), grad_clip)
+    optimizer.step()
+    scheduler.step()
+
+    state.step += 1
+    state.tokens_seen += int(tokens_this_step)
+
+    return {
+        "train_loss": total_loss,
+        "lr": float(lr),
+        "grad_norm": float(grad_norm.detach().cpu().item()),
+        "step": state.step,
+        "tokens": state.tokens_seen,
+    }
 
 
 def _loader(path, tokenizer, context_length: int, batch_size: int, shuffle: bool):

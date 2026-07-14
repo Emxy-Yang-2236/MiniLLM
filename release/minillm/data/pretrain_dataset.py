@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from minillm.tokenizer.bpe import file_sha256, tokenizer_file_sha256
+from ..tokenizer.bpe import file_sha256, tokenizer_file_sha256
 
 
 def get_batch(dataset, batch_size: int, context_length: int, device):
@@ -18,8 +18,45 @@ def get_batch(dataset, batch_size: int, context_length: int, device):
     with shape `(batch_size, context_length)`, where `y` is `x` shifted one
     token to the right.
     """
-    raise NotImplementedError("Week 2 TODO: implement get_batch")
+    if not isinstance(dataset, np.ndarray) and not isinstance(dataset, list) and not isinstance(dataset, torch.Tensor):
+        raise RuntimeError("Invalid dataset: dtype")
+    elif np.ndim(dataset) != 1:
+        raise RuntimeError("Invalid dataset: must be 1 dimension")
+    elif isinstance(dataset, np.ndarray) and not np.issubdtype(dataset.dtype, np.integer):   # default dataset is numpy array
+        raise RuntimeError("Invalid dataset: data should be token_ids (integer)")
+    elif  context_length + 1 > len(dataset):
+        raise RuntimeError("Invalid dataset: too short")
 
+    set_length = len(dataset)
+    indices = torch.randint(0, set_length - context_length, (batch_size,))
+
+    batch_data = [
+        torch.tensor(
+            dataset[batch_start_idx : batch_start_idx + context_length],
+            dtype= torch.long,
+            device= device,
+        )
+        for batch_start_idx in indices.tolist()
+    ]
+    batch_label = [
+        torch.tensor(
+            dataset[batch_start_idx + 1: batch_start_idx + context_length + 1],
+            dtype=torch.long,
+            device= device,
+        )
+        for batch_start_idx in indices.tolist()
+    ]
+
+    data = torch.stack(
+        batch_data,
+        dim= 0,
+    ).to(device= device)
+    label = torch.stack(
+        batch_label,
+        dim= 0,
+    ).to(device= device)
+
+    return data, label
 
 def encoded_manifest_path(path: str | Path) -> Path:
     path = Path(path)
