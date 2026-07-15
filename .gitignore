@@ -1,12 +1,12 @@
 .vscode/
+.idea/
+.venv/
 reference/
 AGENTS.md
 cs336_assignment1_basics.pdf
 /data/
 **/__pycache__/
-.venv/
 Dockerfile
 .dockerignore
-data/
-.idea/
+release/outputs
 release/runs/

@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import time
+import warnings
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Iterable, Iterator
@@ -556,7 +557,8 @@ def split_text_into_chunks(
         for piece in text:
             docs.extend(piece.split(delimiter))
 
-    target_size = max(1, len(text) // num_chunks)
+    text_size = len(text) if isinstance(text, str) else sum(len(piece) for piece in text)
+    target_size = max(1, text_size // num_chunks)
 
     chunks = []
     current_docs = []
@@ -585,6 +587,8 @@ def train_bpe(
     pretokenizer: str = DEFAULT_PRETOKENIZER,
     tie_break: str = DEFAULT_TIE_BREAK,
     input_bytes_override: int | None = None,
+    num_workers: int = 0,
+    num_chunks: int | None = None,
 ) -> ByteBPETokenizer:
     """Train byte-level BPE from in-memory text.
 
@@ -622,8 +626,8 @@ def train_bpe(
     # remove special tokens and pretokenize
     # simultaneously turn ["low" "low" "lower"] into {("low": 2), ("lower": 1)}
     chunk_counter = Counter()
-    num_workers = BPE_TRAIN_NUM_WORKERS
-    num_chunks = BPE_TRAIN_NUM_CHUNKS
+    num_workers = int(num_workers or BPE_TRAIN_NUM_WORKERS)
+    num_chunks = int(num_chunks or BPE_TRAIN_NUM_CHUNKS)
 
     if num_workers <= 1 :
         if isinstance(texts, str) :
@@ -633,7 +637,16 @@ def train_bpe(
                 chunk_counter.update(pre_tok_single(text, special_tokens, pretokenizer))
     else:
         chunks = split_text_into_chunks(texts, special_tokens, num_chunks)
-        chunk_counter = parallel_chunk_counter(chunks, special_tokens, pretokenizer, num_workers)
+        try:
+            chunk_counter = parallel_chunk_counter(chunks, special_tokens, pretokenizer, num_workers)
+        except (OSError, PermissionError) as exc:
+            warnings.warn(
+                f"BPE worker processes are unavailable ({exc}); falling back to serial pre-tokenization",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            for chunk in chunks:
+                chunk_counter.update(pre_tok_single(chunk, special_tokens, pretokenizer))
 
     # split chunk_counter_bytes(deleted) into two list to maintain synchronization during update
     words: list[tuple[bytes, ...]] = []
@@ -713,7 +726,7 @@ def train_bpe(
     tokenizer.stats.stopped_reason = "vocab_size"  # default
     tokenizer.stats.pretokenizer = pretokenizer
     tokenizer.stats.tie_break = tie_break
-    tokenizer.stats.top_pair_count = max(pair_count.values())
+    tokenizer.stats.top_pair_count = max(pair_count.values(), default=0)
 
 
     #start training
@@ -868,9 +881,8 @@ def train_bpe_from_file(
     After training, call `tok.save(output_path)` and
     `tok.save_manifest(output_path)`.
 
-    `num_workers` and `num_chunks` are accepted so this starter matches the
-    release scripts and reference implementation. A correct Week 1 solution may
-    ignore them and run serially.
+    `num_workers` and `num_chunks` control parallel pre-tokenization. Restricted
+    environments that cannot create worker processes fall back to serial work.
     """
     input_path = Path(input_path)
     output_path = Path(output_path)
@@ -899,6 +911,8 @@ def train_bpe_from_file(
         pretokenizer=pretokenizer,
         tie_break=tie_break,
         input_bytes_override=training_bytes_read,
+        num_workers=num_workers,
+        num_chunks=num_chunks,
     )
 
     tokenizer.stats.source_path = str(input_path)

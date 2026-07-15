@@ -60,7 +60,43 @@ def make_sft_tensors(row: dict, tokenizer, seq_len: int) -> dict:
     to `seq_len` with `tokenizer_padding_id(tokenizer)`, pad labels with
     `-100`, and set attention_mask to 1 for real tokens and 0 for padding.
     """
-    raise NotImplementedError("Week 3 TODO: implement response-only SFT tensors")
+    prompt_ids, response_ids = format_prompt_response(row, tokenizer)
+    prompt_ids, response_ids = truncate_prompt_response(
+        prompt_ids,
+        response_ids,
+        seq_len,
+    )
+
+    seq = prompt_ids + response_ids
+
+    input_ids = seq[:-1]
+    labels = seq[1:]
+
+    # Mask labels that predict prompt tokens; keep response-token targets.
+    num_prompt_labels = max(0, len(prompt_ids) - 1)
+    labels[:num_prompt_labels] = [-100] * num_prompt_labels
+
+    # Pad every item to the model context length.
+    real_length = len(input_ids)
+    pad_length = seq_len - real_length
+    pad_id = tokenizer_padding_id(tokenizer)
+
+    input_ids = input_ids + [pad_id] * pad_length
+    labels = labels + [-100] * pad_length
+
+    attention_mask = [1] * real_length + [0] * pad_length
+
+    input_ids = torch.tensor(input_ids, dtype=torch.long)
+    labels = torch.tensor(labels, dtype=torch.long)
+    attention_mask = torch.tensor(attention_mask, dtype=torch.long)
+
+    return {
+        "input_ids": input_ids,
+        "labels": labels,
+        "attention_mask": attention_mask,
+        "prompt": row["prompt"],
+        "response": row["response"],
+    }
 
 
 class SFTDataset(Dataset):

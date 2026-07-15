@@ -153,6 +153,8 @@ class TransformerLM(nn.Module):
             in_features=cfg.d_model,
             out_features=cfg.vocab_size,
         )
+        if cfg.tie_embeddings:
+            self.lm_head.weight = self.token_embeddings.weight
         self.ln_final = RMSNorm(cfg.d_model)
 
     def forward(self, input_ids: torch.Tensor, labels: torch.Tensor | None = None) -> dict[str, torch.Tensor]:

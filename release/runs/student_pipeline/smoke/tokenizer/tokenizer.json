@@ -2510,7 +2510,7 @@
     "input_texts": 1,
     "input_bytes": 1048576,
     "training_bytes_read": 1048576,
-    "source_path": "/workspace/data/raw/tinystories/TinyStoriesV2-GPT4-train.txt",
+    "source_path": "/Users/emxy_yang/Working_dir/Project/MiniLLM/data/raw/tinystories/TinyStoriesV2-GPT4-train.txt",
     "source_sha256": "6418d412de72888f52b5142c761ac21a582f7d1166f0bfbdb5f03ccfdec90443",
     "initial_vocab_size": 257,
     "final_vocab_size": 384,
@@ -2525,6 +2525,6 @@
     "pretokenizer": "gpt2_like",
     "tie_break": "max",
     "tokenizer_version": 2,
-    "elapsed_sec": 0.12640724999801023
+    "elapsed_sec": 0.14833662498858757
   }
 }
